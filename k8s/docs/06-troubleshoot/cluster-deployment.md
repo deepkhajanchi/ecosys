@@ -12,6 +12,10 @@ This document provides guidance on troubleshooting common issues encountered dur
     - [The TigerGraph Pod was killed and restarted because its ephemeral local storage usage exceeded the total limit set for the containers](#the-tigergraph-pod-was-killed-and-restarted-because-its-ephemeral-local-storage-usage-exceeded-the-total-limit-set-for-the-containers)
     - [The TigerGraph CR was created successfully, but the TigerGraph pods and other dependent resources are not created](#the-tigergraph-cr-was-created-successfully-but-the-tigergraph-pods-and-other-dependent-resources-are-not-created)
     - [Webhook Certificate Verification Failure in TigerGraph Cluster creation](#webhook-certificate-verification-failure-in-tigergraph-cluster-creation)
+    - [Service "tigergraph-operator-webhook-service" Not Found](#service-tigergraph-operator-webhook-service-not-found)
+      - [Resolution Steps](#resolution-steps)
+    - [The TigerGraph Operator Manager Pod Continuously Restarts When Creating a TigerGraph Cluster CR](#the-tigergraph-operator-manager-pod-continuously-restarts-when-creating-a-tigergraph-cluster-cr)
+      - [Resolution](#resolution)
 
 ## Troubleshooting Steps
 
@@ -583,7 +587,7 @@ When you create a TigerGraph CR, and run `kubectl get tg -n $NAMESPACE`, you wil
 ```bash
 $ kubectl get tg -n tigergraph -w
 NAME            REPLICAS   CLUSTER-SIZE   CLUSTER-HA   CLUSTER-VERSION                             SERVICE-TYPE   CONDITION-TYPE   CONDITION-STATUS   AGE
-test-cluster                                           docker.io/tigergraph/tigergraph-k8s:3.9.3   LoadBalancer                                       1m
+test-cluster                                           docker.io/tginternal/tigergraph-k8s:3.9.3   LoadBalancer                                       1m
 ```
 
 And when you run `kubectl get pods -n $NAMESPACE`, no pod has been created for this CR. The possible reason is that the reconcile is not triggered due to an issue of controller-runtime package. The log of operator will be like:
@@ -801,3 +805,97 @@ kubectl rollout restart deployment tigergraph-operator-controller-manager -n ${N
 ```
 
 If the issue persists, consider reinstalling the TigerGraph Operator.
+
+### Service "tigergraph-operator-webhook-service" Not Found
+
+You may occasionally encounter the following error when creating a TigerGraph cluster Custom Resource (CR) after successfully installing the TigerGraph Operator:
+
+```bash
+Error from server (InternalError): error when creating "tigergraph.yaml": Internal error occurred: failed calling webhook "mtigergraph.kb.io": failed to call webhook: Post "https://tigergraph-operator-webhook-service.cert-manager-system.svc:443/mutate-graphdb-tigergraph-com-v1alpha1-tigergraph?timeout=10s": service "tigergraph-operator-webhook-service" not found
+```
+
+This error indicates that the "tigergraph-operator-webhook-service" service is not aligned with the configuration specified in the TigerGraph Operator's webhook resources (`MutatingWebhookConfiguration` and `ValidatingWebhookConfiguration`). This issue typically occurs if the Operator was reinstalled without a complete cleanup. For example, uninstalling the Operator using `kubectl delete ns ${OPERATOR_NAMESPACE}` instead of the recommended `kubectl tg uninstall -n ${OPERATOR_NAMESPACE}` or `helm uninstall` can lead to this problem.
+
+#### Resolution Steps
+
+1. **Identify Remaining Cluster-Scoped Resources**
+
+   Use the following command to list any lingering cluster-scoped resources related to TigerGraph:
+
+   ```bash
+   kubectl get clusterroles,clusterrolebindings,customresourcedefinitions,MutatingWebhookConfigurations,ValidatingWebhookConfigurations | grep tigergraph
+   ```
+
+   Example output:
+
+   ```bash
+   clusterrole.rbac.authorization.k8s.io/tigergraph-operator-manager-clusterrole-tigergraph                     2025-05-20T09:26:28Z
+   clusterrole.rbac.authorization.k8s.io/tigergraph-operator-manager-role-tigergraph                            2025-05-20T09:06:07Z
+   clusterrole.rbac.authorization.k8s.io/tigergraph-operator-metrics-auth-role-tigergraph                       2025-05-20T09:06:07Z
+   clusterrole.rbac.authorization.k8s.io/tigergraph-operator-metrics-reader-tigergraph                          2025-05-20T09:06:07Z
+   clusterrolebinding.rbac.authorization.k8s.io/tigergraph-operator-manager-clusterrolebinding-tigergraph       ClusterRole/tigergraph-operator-manager-clusterrole-tigergraph              3h54m
+   clusterrolebinding.rbac.authorization.k8s.io/tigergraph-operator-manager-rolebinding-tigergraph              ClusterRole/tigergraph-operator-manager-role-tigergraph                     4h15m
+   clusterrolebinding.rbac.authorization.k8s.io/tigergraph-operator-metrics-auth-rolebinding-tigergraph         ClusterRole/tigergraph-operator-metrics-auth-role-tigergraph                4h15m
+   clusterrolebinding.rbac.authorization.k8s.io/tigergraph-operator-read-metrics-rolebinding-tigergraph         ClusterRole/tigergraph-operator-metrics-reader-tigergraph                   4h15m
+   customresourcedefinition.apiextensions.k8s.io/tigergraphbackups.graphdb.tigergraph.com                           2025-05-20T09:06:02Z
+   customresourcedefinition.apiextensions.k8s.io/tigergraphbackupschedules.graphdb.tigergraph.com                   2025-05-20T09:06:02Z
+   customresourcedefinition.apiextensions.k8s.io/tigergraphmonitors.graphdb.tigergraph.com                          2025-05-20T09:06:02Z
+   customresourcedefinition.apiextensions.k8s.io/tigergraphrestores.graphdb.tigergraph.com                          2025-05-20T09:06:03Z
+   customresourcedefinition.apiextensions.k8s.io/tigergraphs.graphdb.tigergraph.com                                 2025-05-20T09:06:03Z
+   mutatingwebhookconfiguration.admissionregistration.k8s.io/tigergraph-operator-mutating-webhook-configuration                    5          4h15m
+   validatingwebhookconfiguration.admissionregistration.k8s.io/tigergraph-operator-validating-webhook-configuration              5          4h15m
+   ```
+
+2. **Delete All Remaining TigerGraph Resources**
+
+   Carefully delete all the resources listed above. For example:
+
+   ```bash
+   kubectl delete clusterrole <name>
+   kubectl delete clusterrolebinding <name>
+   kubectl delete customresourcedefinition <name>
+   kubectl delete mutatingwebhookconfiguration <name>
+   kubectl delete validatingwebhookconfiguration <name>
+   ```
+
+   Replace `<name>` with the actual resource names from the previous command's output.
+
+3. **Reinstall the TigerGraph Operator**
+
+   After cleaning up all related resources, reinstall the TigerGraph Operator using the recommended method (`kubectl tg install` or `helm install`). This ensures all components are deployed in the correct namespace and configuration.
+
+By following these steps, you can resolve the "Service 'tigergraph-operator-webhook-service' not found" error and ensure a clean, functional TigerGraph Operator installation.
+
+### The TigerGraph Operator Manager Pod Continuously Restarts When Creating a TigerGraph Cluster CR
+
+You may occasionally encounter a situation where the TigerGraph Operator manager pod enters a `CrashLoopBackOff` state after creating a TigerGraph cluster Custom Resource (CR). When you check the logs of the manager pod, you may see errors similar to the following:
+
+```bash
+W0512 06:55:16.791607       1 reflector.go:561] pkg/mod/k8s.io/client-go@v0.31.6/tools/cache/reflector.go:243: failed to list *v1alpha1.TigerGraphMonitor: tigergraphmonitors.graphdb.tigergraph.com is forbidden: User "system:serviceaccount:tigergraph:tigergraph-operator-controller-manager" cannot list resource "tigergraphmonitors" in API group "graphdb.tigergraph.com" at the cluster scope
+E0512 06:55:16.791784       1 reflector.go:158] "Unhandled Error" err="pkg/mod/k8s.io/client-go@v0.31.6/tools/cache/reflector.go:243: Failed to watch *v1alpha1.TigerGraphMonitor: failed to list *v1alpha1.TigerGraphMonitor: tigergraphmonitors.graphdb.tigergraph.com is forbidden: User \"system:serviceaccount:tigergraph:tigergraph-operator-controller-manager\" cannot list resource \"tigergraphmonitors\" in API group \"graphdb.tigergraph.com\" at the cluster scope" logger="UnhandledError"
+...
+2025-05-12T06:57:16Z	ERROR	Could not wait for Cache to sync	{"controller": "tigergraph", "controllerGroup": "graphdb.tigergraph.com", "controllerKind": "TigerGraph", "error": "failed to wait for tigergraph caches to sync: timed out waiting for cache to be synced for Kind *v1alpha1.TigerGraph"}
+```
+
+These errors indicate that the TigerGraph Operator is attempting to watch TigerGraph CRs across all namespaces, but does not have the necessary cluster-scoped permissions. This issue often occurs if you install the TigerGraph Operator using Helm with `clusterScope: false` but do not specify a `watchNamespace`.
+
+#### Resolution
+
+To resolve this issue:
+
+1. **Uninstall the Existing Operator**  
+   Remove the incorrectly configured Operator installation.
+
+2. **Reinstall the Namespace-Scoped Operator with a Watch Namespace**  
+   When reinstalling the TigerGraph Operator in namespace-scoped mode, ensure you specify the `watchNamespace` parameter. For example, using Helm:
+
+   ```bash
+   helm install tg-operator tigergraph/tg-operator \
+     --namespace tigergraph \
+     --set clusterScope=false \
+     --set watchNamespaces=tigergraph
+   ```
+
+   Replace `tigergraph` with your desired namespace if different.
+
+By ensuring the Operator is installed with the correct scope and watch namespace, the manager pod will have the necessary permissions and will no longer enter a CrashLoopBackOff state.

@@ -92,7 +92,7 @@ During the upgrade process, the cluster status will be updated to "Upgrade: Fals
 kubectl get tg -n tigergraph
 
 NAME           REPLICAS   CLUSTER-SIZE   CLUSTER-HA   CLUSTER-VERSION                            SERVICE-TYPE   REGION-AWARENESS   CONDITION-TYPE   CONDITION-STATUS   AGE
-test-cluster   4          4              2            tigergraph/tigergraph-k8s:4.2.0   LoadBalancer                      UpgradePre       False              33m
+test-cluster   4          4              2            tginternal/tigergraph-k8s:4.2.0   LoadBalancer                      UpgradePre       False              33m
 ```
 
 You can check the pod status of the upgrade pre-check job by running the following command:

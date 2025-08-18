@@ -4,14 +4,22 @@ This document provides detailed instructions for deploying a TigerGraph cluster 
 
 - [Deploying TigerGraph on Red Hat OpenShift](#deploying-tigergraph-on-red-hat-openshift)
   - [Prerequisites](#prerequisites)
+  - [Customize podPidsLimit and resource permission on OpenShift](#customize-podpidslimit-and-resource-permission-on-openshift)
+    - [Change the podPidsLimit value of OpenShift](#change-the-podpidslimit-value-of-openshift)
+    - [Acquire special permission](#acquire-special-permission)
   - [Deploying TigerGraph Operator](#deploying-tigergraph-operator)
     - [Install cert-manager for OpenShift](#install-cert-manager-for-openshift)
     - [Install kubectl-tg plugin](#install-kubectl-tg-plugin)
     - [Install CRDs independently (Optional)](#install-crds-independently-optional)
     - [Install TigerGraph Operator](#install-tigergraph-operator)
+      - [Step 1: Define Environment Variable](#step-1-define-environment-variable)
+      - [Step 2: Grant Permissions to Service Accounts](#step-2-grant-permissions-to-service-accounts)
+      - [Step 3: Choose Operator Scope](#step-3-choose-operator-scope)
+      - [Step 4: Install the Operator](#step-4-install-the-operator)
+      - [Step 5: Custom Installation Options](#step-5-custom-installation-options)
+      - [Step 6: Verify Operator Deployment](#step-6-verify-operator-deployment)
   - [Deploy a TigerGraph Cluster](#deploy-a-tigergraph-cluster)
-    - [Change the podPidsLimit value of OpenShift](#change-the-podpidslimit-value-of-openshift)
-    - [Acquire special permission](#acquire-special-permission)
+    - [Create a service account binding to `SecurityContextConstraints` resource anyuid-extra](#create-a-service-account-binding-to-securitycontextconstraints-resource-anyuid-extra)
     - [Providing a Private SSH Key Pair for Enhanced Security](#providing-a-private-ssh-key-pair-for-enhanced-security)
     - [Specify the StorageClass name](#specify-the-storageclass-name)
     - [Specify the additional Storage for mounting multiple PVs(Optional)](#specify-the-additional-storage-for-mounting-multiple-pvsoptional)
@@ -45,156 +53,9 @@ Before you begin, ensure you have the following prerequisites:
 
 - Create an [OpenShift Kubernetes cluster](https://docs.openshift.com/container-platform/4.10/installing/index.html) with admin role permission. OpenShift Container Platform version requirements are 4 and above.
 
-## Deploying TigerGraph Operator
+## Customize podPidsLimit and resource permission on OpenShift
 
-To deploy the TigerGraph Operator, follow these steps:
-
-### Install cert-manager for OpenShift
-
-The TigerGraph Operator uses the Admission Webhooks feature and relies on [cert-manager](https://github.com/jetstack/cert-manager) for provisioning certificates for the webhook server.
-
-Admission webhooks are HTTP callbacks that receive admission requests and do something with them. It is registered with Kubernetes and will be called by Kubernetes to validate or mutate a resource before being stored.
-
-Follow these commands to install cert-manager:
-
-> [!WARNING]
-> Please check whether cert-manager has been installed before execute the following command.
-
-```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.13/cert-manager.yaml 
-# Verify installation of cert-manager 
-kubectl wait deployment -n cert-manager cert-manager --for condition=Available=True --timeout=90s
-kubectl wait deployment -n cert-manager cert-manager-cainjector --for condition=Available=True --timeout=90s
-kubectl wait deployment -n cert-manager cert-manager-webhook --for condition=Available=True --timeout=90s
-```
-
-### Install kubectl-tg plugin
-
-kubectl-tg is a plugin for deploying and managing the Operator and TigerGraph clusters imperatively. Ensure you meet the following requirements before installing the kubectl-tg plugin:
-
-- [helm](https://helm.sh/docs/helm/helm_install/): version >= 3.7.0
-- [jq](https://jqlang.github.io/jq/download/): version >= 1.6
-- [yq](https://github.com/mikefarah/yq): version >= 4.18.1
-
-> [!IMPORTANT]
-> The kubectl-tg plugin is only verified on GNU/Linux systems.
->
-> If you are using MacOS, you may encounter issues due to the differences between GNU and MacOS commands.
-> Please refer to the [troubleshooting document](../05-troubleshoot/kubectl-tg-plugin.md) for more information.
->
-> If you are using Windows, please run the commands in a WSL environment.
-> Please refer to [Windows Subsystem for Linux Documentation](https://learn.microsoft.com/en-us/windows/wsl/) for more information.
-
-Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 0.0.9:
-
-```bash
-wget https://dl.tigergraph.com/k8s/latest/kubectl-tg -O kubectl-tg
-sudo install kubectl-tg /usr/local/bin/
-```
-
-Display kubectl-tg version information:
-
-```bash
-kubectl tg version
-```
-
-Show help Information
-
-```bash
-kubectl tg help
-```
-
-### Install CRDs independently (Optional)
-
-This step is optional. You can skip it if you have privileged permissions in your Kubernetes environment. The required component will be automatically installed during the Operator installation process.
-
-CustomResourceDefinitions (CRDs) are non-namespaced entities accessible across all namespaces. Installing CRDs requires privileged permissions from the Kubernetes cluster. You may prefer to install CRDs independently from the Operator installation:
-
-```bash
-kubectl apply -f https://dl.tigergraph.com/k8s/latest/tg-operator-crd.yaml
-```
-
-### Install TigerGraph Operator
-
-If you want to install the TigerGraph Operator with Helm, you can refer to [Deploy TigerGraph Operator with Helm](./deploy-operator-with-helm.md).
-
-The example below shows how to install the TigerGraph Operator with the `kubectl-tg` plugin.
-
-To simplify the Operator installation and TigerGraph cluster deployment, define environment variables:
-
-```bash
-export YOUR_NAMESPACE="tigergraph"
-export YOUR_CLUSTER_NAME="test-tg-cluster"
-export YOUR_SSH_KEY_SECRET_NAME="ssh-key-secret"
-export SERVICE_ACCOUNT_NAME="tg-service-account"
-```
-
-Install TigerGraph Operator using the following command:
-
-A namespace-scoped operator watches and manages resources in a single Namespace, whereas a cluster-scoped operator watches and manages resources cluster-wide.
-
-Choose a namespace-scoped operator when:
-
-- You need to isolate workloads per team, project, or tenant.
-
-- Security and compliance require limited access.
-
-- You want to deploy multiple instances of an operator for different namespaces.
-
-Choose a cluster-scoped operator when:
-
-- The operator needs to manage resources across namespaces.
-
-- The application requires global policies or configurations.
-
-- You want a single instance of the operator to manage the entire cluster.
-
-> [!IMPORTANT]
-> Namespace-scoped operators require the same operator version to be installed for different namespaces.
-
-- Install a namespace-scoped Operator
-
-    ```bash
-    kubectl tg init --cluster-scope false --namespace ${YOUR_NAMESPACE}
-    ```
-
-- Install a cluster-scoped Operator (default behavior if not specified):
-
-    ```bash
-    kubectl tg init --cluster-scope true --namespace ${YOUR_NAMESPACE}
-    ```
-
-- For custom installation options:
-
-  You can customize the installation by specifying options like the Operator version, deployment size, CPU, memory, max concurrent reconciles of controller, and the namespace to watch, among others. Here's an example:
-
-    ```bash
-    kubectl tg init --cluster-scope false --version ${OPERATOR_VERSION} --operator-size 3 --operator-watch-namespace ${YOUR_NAMESPACE} \
-    --operator-cpu 1000m  --operator-memory 1024Mi \
-    --max-tg-concurrent-reconciles 4 \
-    --max-backup-concurrent-reconciles 4 \
-    --max-backup-schedule-concurrent-reconciles 4 \
-    --max-restore-concurrent-reconciles 2 \
-    --namespace ${YOUR_NAMESPACE}
-    ```
-
-> [!IMPORTANT]
-> To ensure high availability of the TigerGraph Operator, set the `--operator-size` option to a value of at least 2.
-
-> [!NOTE]
-> You can set the concurrent reconciliation value to a larger value during installation or update it to a suitable value afterward. The default maximum concurrent reconciliation value of 2 is sufficient for most cases. However, you may need to customize it if you use one operator to manage numerous TigerGraph clusters within a Kubernetes cluster.
-
-  For a comprehensive list of options, refer to the output of the `kubectl tg init` --help command.
-
-- Ensure that the operator has been successfully deployed:
-
-    ```bash
-    kubectl wait deployment tigergraph-operator-controller-manager --for condition=Available=True --timeout=120s -n ${YOUR_NAMESPACE}
-    ```
-
-## Deploy a TigerGraph Cluster
-
-This section explains how to deploy a TigerGraph cluster on OpenShift using the kubectl-tg plugin and CR (Custom Resource) YAML manifest.
+Before deploying a TigerGraph cluster using the TigerGraph Operator, you must customize the `podPidsLimit` and request special resource permissions by creating a SecurityContextConstraints resource.
 
 ### Change the podPidsLimit value of OpenShift
 
@@ -203,7 +64,9 @@ In a production environment, TigerGraph clusters require setting the podPidsLimi
 ```bash
 kubectl label machineconfigpool worker custom-crio=high-pid-limit
 kubectl label machineconfigpool worker custom-kubelet=small-pods
+```
 
+```bash
 eval "cat << EOF
 apiVersion: machineconfiguration.openshift.io/v1
 kind: KubeletConfig
@@ -325,6 +188,9 @@ provider "privileged": Forbidden: not usable by user or serviceaccount]
 
 - Create a SecurityContextConstraints
   
+> [!IMPORTANT]
+> Prior to **TigerGraph Operator version 1.6.0, the following** `SecurityContextConstraints` must be created before deploying the Operator and installing the TigerGraph cluster.
+
   Execute the following command:
 
   ```bash
@@ -371,6 +237,248 @@ provider "privileged": Forbidden: not usable by user or serviceaccount]
   EOF
   ```
 
+> [!IMPORTANT]
+> Starting from **TigerGraph Operator version 1.6.0**, the following `SecurityContextConstraints` must be created before deploying the Operator and installing the TigerGraph cluster. Otherwise, you may encounter resource permission issues when deploying the Operator or installing the TigerGraph cluster on OpenShift.
+
+  Execute the following command:
+
+  ```bash
+  cat <<EOF | kubectl apply -f -
+  kind: SecurityContextConstraints
+  apiVersion: security.openshift.io/v1
+  allowHostDirVolumePlugin: false
+  allowHostIPC: false
+  allowHostNetwork: false
+  allowHostPID: false
+  allowHostPorts: false
+  allowPrivilegeEscalation: true
+  allowPrivilegedContainer: true
+  allowedCapabilities:
+  - AUDIT_WRITE
+  defaultAddCapabilities: null
+  metadata:
+    name: anyuid-extra
+    annotations:
+      kubernetes.io/description: anyuid-extra provides all features of the anyuid SCC
+          but add SYS_CHROOT and AUDIT_WRITE capabilities.
+  priority: 10
+  readOnlyRootFilesystem: false
+  requiredDropCapabilities:
+  - MKNOD
+  runAsUser:
+    type: RunAsAny
+  seLinuxContext:
+    type: MustRunAs
+  fsGroup:
+    type: RunAsAny
+  supplementalGroups:
+    type: RunAsAny
+  seccompProfiles:
+  - runtime/default
+  groups:
+  - system:cluster-admins
+  volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+  - csi
+  - hostPath
+  - ephemeral
+  EOF
+  ```
+
+> [!WARNING]
+> After creating the SecurityContextConstraints resource anyuid-extra, you still need to bind it to the service account used to deploy the TigerGraph Operator and TigerGraph cluster.
+
+## Deploying TigerGraph Operator
+
+To deploy the TigerGraph Operator, follow these steps:
+
+### Install cert-manager for OpenShift
+
+The TigerGraph Operator uses the Admission Webhooks feature and relies on [cert-manager](https://github.com/jetstack/cert-manager) for provisioning certificates for the webhook server.
+
+Admission webhooks are HTTP callbacks that receive admission requests and do something with them. It is registered with Kubernetes and will be called by Kubernetes to validate or mutate a resource before being stored.
+
+Follow these commands to install cert-manager:
+
+> [!WARNING]
+> Please check whether cert-manager has been installed before execute the following command.
+
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.17/cert-manager.yaml 
+# Verify installation of cert-manager 
+kubectl wait deployment -n cert-manager cert-manager --for condition=Available=True --timeout=90s
+kubectl wait deployment -n cert-manager cert-manager-cainjector --for condition=Available=True --timeout=90s
+kubectl wait deployment -n cert-manager cert-manager-webhook --for condition=Available=True --timeout=90s
+```
+
+### Install kubectl-tg plugin
+
+kubectl-tg is a plugin for deploying and managing the Operator and TigerGraph clusters imperatively. Ensure you meet the following requirements before installing the kubectl-tg plugin:
+
+- [helm](https://helm.sh/docs/helm/helm_install/): version >= 3.7.0
+- [jq](https://jqlang.github.io/jq/download/): version >= 1.6
+- [yq](https://github.com/mikefarah/yq): version >= 4.18.1
+
+> [!IMPORTANT]
+> The kubectl-tg plugin is only verified on GNU/Linux systems.
+>
+> If you are using MacOS, you may encounter issues due to the differences between GNU and MacOS commands.
+> Please refer to the [troubleshooting document](../06-troubleshoot/kubectl-tg-plugin.md) for more information.
+>
+> If you are using Windows, please run the commands in a WSL environment.
+> Please refer to [Windows Subsystem for Linux Documentation](https://learn.microsoft.com/en-us/windows/wsl/) for more information.
+
+Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 0.0.9:
+
+```bash
+wget https://dl.tigergraph.com/k8s/latest/kubectl-tg -O kubectl-tg
+sudo install kubectl-tg /usr/local/bin/
+```
+
+Display kubectl-tg version information:
+
+```bash
+kubectl tg version
+```
+
+Show help Information
+
+```bash
+kubectl tg help
+```
+
+### Install CRDs independently (Optional)
+
+This step is optional. You can skip it if you have privileged permissions in your Kubernetes environment. The required component will be automatically installed during the Operator installation process.
+
+CustomResourceDefinitions (CRDs) are non-namespaced entities accessible across all namespaces. Installing CRDs requires privileged permissions from the Kubernetes cluster. You may prefer to install CRDs independently from the Operator installation:
+
+```bash
+kubectl apply -f https://dl.tigergraph.com/k8s/latest/tg-operator-crd.yaml
+```
+
+### Install TigerGraph Operator
+
+If you want to install the TigerGraph Operator using Helm, refer to [Deploy TigerGraph Operator with Helm](./deploy-operator-with-helm.md).
+
+The example below demonstrates how to install the TigerGraph Operator using the `kubectl-tg` plugin.
+
+#### Step 1: Define Environment Variable
+
+To simplify the installation process, define your target namespace:
+
+```bash
+  export YOUR_NAMESPACE="tigergraph"
+```
+
+#### Step 2: Grant Permissions to Service Accounts
+
+> [!IMPORTANT]
+> The service accounts tigergraph-operator-controller-manager and tg-crd-upgrade-service-account are automatically created during the TigerGraph Operator installation.
+>
+> - tigergraph-operator-controller-manager is used for deploying the Operator.
+> - tg-crd-upgrade-service-account is used for handling Operator upgrades.
+
+Ensure both service accounts are bound to the previously created SecurityContextConstraints (e.g., anyuid-extra):
+
+```bash
+oc adm policy add-scc-to-user -n ${YOUR_NAMESPACE} -z tigergraph-operator-controller-manager anyuid-extra
+oc adm policy add-scc-to-user -n ${YOUR_NAMESPACE} -z tg-crd-upgrade-service-account anyuid-extra
+```
+
+#### Step 3: Choose Operator Scope
+
+TigerGraph Operator supports two deployment scopes:
+
+- **Namespace-scoped Operator**: Watches and manages resources within a single namespace.
+
+- **Cluster-scoped Operator**: Watches and manages resources across the entire cluster.
+
+Choose a namespace-scoped Operator when:
+
+- You want to isolate workloads per team, project, or tenant.
+
+- Security or compliance requires limited access.
+
+- You plan to run multiple Operator instances across different namespaces.
+
+Choose a cluster-scoped Operator when:
+
+- The Operator must manage resources across multiple namespaces.
+
+- The application uses global policies or configurations.
+
+- A single Operator instance should manage the whole cluster.
+
+> [!IMPORTANT]
+> Namespace-scoped Operators must use the same Operator version across all namespaces.
+
+#### Step 4: Install the Operator
+
+- **Install a namespace-scoped Operator**:
+
+    ```bash
+    kubectl tg init --cluster-scope false --namespace ${YOUR_NAMESPACE}
+    ```
+
+- **Install a cluster-scoped Operator** (default behavior if not specified):
+
+    ```bash
+    kubectl tg init --cluster-scope true --namespace ${YOUR_NAMESPACE}
+    ```
+
+#### Step 5: Custom Installation Options
+
+You can customize the installation by specifying additional options such as Operator version, deployment size, resource limits, and concurrency settings. Example:
+
+```bash
+kubectl tg init --cluster-scope false --version ${OPERATOR_VERSION} --operator-size 3 --operator-watch-namespace ${YOUR_NAMESPACE} \
+--operator-cpu 1000m  --operator-memory 1024Mi \
+--max-tg-concurrent-reconciles 4 \
+--max-backup-concurrent-reconciles 4 \
+--max-backup-schedule-concurrent-reconciles 4 \
+--max-restore-concurrent-reconciles 2 \
+--namespace ${YOUR_NAMESPACE}
+  ```
+
+> [!IMPORTANT]
+> For high availability, set the --operator-size to 2 or greater.
+> [!NOTE]
+> You can configure the maximum number of concurrent reconciliations during installation or update it later.
+The default value of 2 is sufficient for most use cases, but a higher value is recommended if the Operator manages many TigerGraph clusters in a single Kubernetes cluster.
+
+For a complete list of available options, run:
+
+```bash
+kubectl tg init --help
+```
+
+#### Step 6: Verify Operator Deployment
+
+```bash
+kubectl wait deployment tigergraph-operator-controller-manager --for condition=Available=True --timeout=120s -n ${YOUR_NAMESPACE}
+```
+
+## Deploy a TigerGraph Cluster
+
+This section explains how to deploy a TigerGraph cluster on OpenShift using the kubectl-tg plugin and CR (Custom Resource) YAML manifest.
+
+To simplify TigerGraph cluster deployment, define environment variables:
+
+```bash
+  export YOUR_NAMESPACE="tigergraph"
+  export YOUR_CLUSTER_NAME="test-tg-cluster"
+  export YOUR_SSH_KEY_SECRET_NAME="ssh-key-secret"
+  export SERVICE_ACCOUNT_NAME="tg-service-account"
+```
+
+### Create a service account binding to `SecurityContextConstraints` resource anyuid-extra
+
 - Create or use an exist service account
 
   Create a service account as follows:
@@ -381,7 +489,7 @@ provider "privileged": Forbidden: not usable by user or serviceaccount]
 
 - Add the service account name `${SERVICE_ACCOUNT_NAME}` to the above SecurityContextConstraints
 
-  Ensure that the service account name ${SERVICE_ACCOUNT_NAME} is added to the previously created SecurityContextConstraints:
+  Ensure that the service account name `${SERVICE_ACCOUNT_NAME}` is added to the previously created SecurityContextConstraints:
 
   ```bash
   oc adm policy add-scc-to-user -n ${YOUR_NAMESPACE} -z ${SERVICE_ACCOUNT_NAME} anyuid-extra
@@ -482,13 +590,36 @@ You can customize the configurations for the TigerGraph system by specifying the
 
 ### Create TG cluster with specific options
 
-To create a new TigerGraph cluster with specific options, use either the kubectl-tg plugin or a CR YAML manifest. Below are examples using the kubectl-tg plugin:
+You can create a new TigerGraph cluster with specific options, such as size, high availability, version, license, and resource specifications.
 
-You can get all of the TigerGraph docker image version from [tigergraph-k8s](https://hub.docker.com/r/tigergraph/tigergraph-k8s/tags)
+> [!IMPORTANT]
+> Choosing the right compute resources (CPU and memory) and storage size to host your TigerGraph system is crucial for achieving the right balance between cost and performance. We provide general guidelines for hardware selection based on simple hypothetical assumptions, but your actual hardware requirements will vary depending on your data size, workload, and performance needs.
 
-You must provide your license key when creating cluster. Contact TigerGraph support for help finding your license key.
+- Hardware Recommendations
+
+The sizing recommendations below apply to each TigerGraph node. If you have more than several hundred gigabytes of data, you should consider deploying a cluster of multiple nodes, to distribute your data.
+
+| Deployment env | CPU  | Memory | Storage size |
+|----------|----------|----------|----------|
+| Personal Use | 4 cores | 8GB | ≥ 50GB |
+| Development, UAT, or SIT System | 16 cores | 32GB | ≥ 300GB |
+| Production System | 32 cores | 64GB | ≥ 500GB |
+
+- Configuring HA settings
+
+TigerGraph's HA (High Availability) service provides load balancing when all components are operational, and automatic failover in the event of a service disruption. For detailed information, please refer to the [official documents](https://docs.tigergraph.com/tigergraph-server/current/cluster-and-ha-management/ha-cluster).
+
+The minimum value for the replication factor (HA) is 1, meaning high availability is not configured for the cluster. The partitioning factor is not explicitly set by the user; instead, TigerGraph determines it using the following formula:
+
+`partitioning factor = number of pods / replication factor`
+
+If the result is not an integer, some machines will remain unused. For example, in a 7-node cluster with a replication factor of 2, the system will configure 2-way HA with a partitioning factor of 3, leaving one machine unused.
+
+In general, we recommend setting the replication factor (HA) to 2 and using a cluster size that is a power of 2 (e.g., 4, 8, 16)
 
 - Export license key as an environment variable
+
+  You must provide your license key when creating cluster. Contact TigerGraph support for help finding your license key.
 
   ```bash
   export LICENSE=<LICENSE_KEY>
@@ -497,14 +628,38 @@ You must provide your license key when creating cluster. Contact TigerGraph supp
 - Create TigerGraph cluster with kubectl-tg plugin
 
   ```bash
-  kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 3 --ha 2 --version 3.9.3 --license ${LICENSE} \
+  kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 4 --ha 2 --version 4.2.1 --license ${LICENSE} \
   --storage-class standard --storage-size 100G --cpu 6000m --memory 16Gi --namespace ${YOUR_NAMESPACE}
   ```
+
+> [!NOTE]
+> **Protect your license by using Secret**
+>
+> When you use option `--license` to set license, the license will be stored in the TigerGraph CR as plain text.
+> To protect your license, you can create a K8s Secret to store the license and use the `--license-secret` option to set the license.
+> For example:
+>
+> ```bash
+> kubectl create secret generic ${YOUR_CLUSTER_NAME}-license --from-literal=license=${LICENSE} --namespace ${YOUR_NAMESPACE}
+>
+> ```
+>
+> Then, when creating the TigerGraph cluster, use the `--license-secret` option to set the license:
+>
+> ```bash
+> kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 4 --ha 2 --version 4.2.1 \
+> --license-secret ${YOUR_CLUSTER_NAME}-license --storage-class standard --storage-size 10G --cpu 2000m --memory 6Gi --namespace ${YOUR_NAMESPACE}
+> ```
+>
+> [!IMPORTANT]
+> You can use only one of the `--license` and `--license-secret` options to set the license when creating the TigerGraph cluster.
+> If you set both options, the creation of CR will be rejected.
 
 - Alternatively, create a TigerGraph cluster with a CR YAML manifest:
 
 > [!NOTE]
-> Please replace the TigerGraph docker image version (e.g., 3.9.3) with your desired version.
+> Please replace the TigerGraph docker image version (e.g., 4.2.1) with your desired version.
+> If you want to use license secret instead of license, please replace the `license` field with `licenseSecretName` in the following CR YAML manifest.
 
   ```bash
   cat <<EOF | kubectl apply -f -
@@ -514,7 +669,7 @@ You must provide your license key when creating cluster. Contact TigerGraph supp
     name: ${YOUR_CLUSTER_NAME}
     namespace: ${YOUR_NAMESPACE}
   spec:
-    image: docker.io/tigergraph/tigergraph-k8s:3.9.3
+    image: docker.io/tigergraph/tigergraph-k8s:4.2.1
     imagePullPolicy: IfNotPresent
     ha: 2
     license: ${LICENSE}
@@ -604,7 +759,8 @@ When using the headless service to access the TigerGraph service, you must log i
   ```
 
 > [!NOTE]
-> You can also access the TigerGraph service through a specific TigerGraph pod by prefixing the pod name. For example: 
+> You can also access the TigerGraph service through a specific TigerGraph pod by prefixing the pod name. For example:
+>
 > ```bash
 > curl ${YOUR_CLUSTER_NAME}-0.${YOUR_CLUSTER_NAME}-internal-service.${YOUR_NAMESPACE}.svc.cluster.local:14240/api/ping
 >{"error":false,"message":"pong","results":null}
@@ -613,7 +769,7 @@ When using the headless service to access the TigerGraph service, you must log i
 #### Access TigerGraph Services from outside the Kubernetes cluster
 
 > [!IMPORTANT]
-> Please ensure that the external service is configured before proceeding with the following steps. You can configure the external service using the `spec.listener` field when creating or updating the TigerGraph cluster. Please refer to [External access service](../07-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md#external-access-service) for more details.
+> Please ensure that the external service is configured before proceeding with the following steps. You can configure the external service using the `spec.listener` field when creating or updating the TigerGraph cluster. Please refer to [External access service](../08-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md#external-access-service) for more details.
 
 Query the external service address:
 
@@ -656,7 +812,7 @@ Upgrading a TigerGraph cluster is supported from a lower version to a higher ver
 
 > [!WARNING]
 > For TigerGraph 3.9.3 and later versions, the use of passwords to log in to Pods is disabled, which enhances security. If you plan to upgrade your TigerGraph cluster to version 3.9.3, it is essential to first upgrade the Operator to version 0.0.9.
-
+>
 > [!WARNING]
 > Operator 0.0.9 has disabled TG downgrades from a higher version (e.g., 3.9.3) to any lower version (e.g., 3.9.2). Therefore, the upgrade job will fail if you attempt to downgrade.
 
@@ -772,4 +928,4 @@ kubectl delete -f https://dl.tigergraph.com/k8s/${OPERATOR_VERSION}/tg-operator-
 
 If you are interested in the details of deploying a TigerGraph cluster using the CR (Custom Resource) YAML manifest, refer to the following document:
 
-- [Configuring TigerGraph Clusters on K8s using TigerGraph CR](../07-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md)
+- [Configuring TigerGraph Clusters on K8s using TigerGraph CR](../08-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md)

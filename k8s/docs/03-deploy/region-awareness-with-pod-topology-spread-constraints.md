@@ -350,7 +350,7 @@ kubectl tg update --cluster-name tg-test-cluster --size ${CLUSTER_SIZE} --ha ${C
 
 If you want an incoming TigerGraph Pod to be evenly spread with existing Pods across zones, and enable region awareness of TigerGraph, you can use a manifest similar to:
 
-YAML [sample](../09-samples/deploy/region-awareness-with-topology-spread-constraint.yaml) example:
+YAML [sample](../10-samples/deploy/region-awareness-with-topology-spread-constraint.yaml) example:
 
 ```yaml
 apiVersion: graphdb.tigergraph.com/v1alpha1
@@ -409,7 +409,7 @@ You can ignore the above limitations if you don't enable region awareness for Ti
 
 You can also configure multiple topology spread constraints when enabling region awareness, the below example shows how to combine two topology spread constraints to control the spread of Pods both by node and by zone.
 
-YAML [sample](../09-samples/deploy/region-awareness-with-multiple-topology-spread-constraints.yaml) example:
+YAML [sample](../10-samples/deploy/region-awareness-with-multiple-topology-spread-constraints.yaml) example:
 
 ```yaml
 apiVersion: graphdb.tigergraph.com/v1alpha1
@@ -470,7 +470,7 @@ spec:
 
 In a large Kubernetes cluster, there may be many zones. You can combine topology spread constraints and node affinity to specify the zones or nodes where pods will be scheduled.
 
-YAML [sample](../09-samples/deploy/region-awareness-with-topology-spread-constraint-and-node-affinity.yaml) example:
+YAML [sample](../10-samples/deploy/region-awareness-with-topology-spread-constraint-and-node-affinity.yaml) example:
 
 ```yaml
 apiVersion: graphdb.tigergraph.com/v1alpha1
@@ -547,7 +547,7 @@ There may be scenarios where you want to deploy multiple TigerGraph clusters wit
 
 The key configuration is to add a custom pod label to the TigerGraph clusters and use this label as the value for the `labelSelector.matchLabels` field. Enabling region awareness for a TigerGraph cluster is optional.
 
-YAML [sample](../09-samples/deploy/apply-topology-spread-constraint-between-multiple-tigergraph-clusters.yaml) example:
+YAML [sample](../10-samples/deploy/apply-topology-spread-constraint-between-multiple-tigergraph-clusters.yaml) example:
 
 ```yaml
 apiVersion: graphdb.tigergraph.com/v1alpha1

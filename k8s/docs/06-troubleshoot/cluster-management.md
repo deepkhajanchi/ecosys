@@ -156,12 +156,7 @@ This document provides solutions for common issues that may arise during the man
   test-cluster-2   0/1     Pending   0          58s
   ```
 
-- License updates via the K8s Operator are not supported yet. You can perform a license update using the following methods:
-  - Use the `kubectl tg update` --license ${LICENSE} command (supported in version 0.0.7).
-  - Use the License function in the GUI to access the Admin Portal for updates.
-  - Use `gadmin config entry license` to update the license in the pod. Refer to the TigerGraph Docs for more information.
-
-- Resizing Persistent Volumes (PV) via the K8s Operator is not yet supported. Please refer to the [manual documentation](../07-reference/expand-persistent-volume.md) for instructions.
+- Resizing Persistent Volumes (PV) via the K8s Operator is not yet supported. Please refer to the [manual documentation](../08-reference/expand-persistent-volume.md) for instructions.
 
 ## Troubleshooting Steps for upgrading cluster
 

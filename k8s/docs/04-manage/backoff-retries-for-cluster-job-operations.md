@@ -224,7 +224,7 @@ Status:
     Reason:                ClusterInitializePostFalse
     Status:                False
     Type:                  InitializePost
-  Image:                   docker.io/tigergraph/tigergraph-k8s:4.2.0
+  Image:                   docker.io/tginternal/tigergraph-k8s:4.2.0-ubuntu22
   Pod Init Labels:
     tigergraph.com/cluster-name:  test-cluster
     tigergraph.com/cluster-pod:   test-cluster
@@ -254,7 +254,7 @@ Once the job retry attempts reach the maximum number of retries, the TigerGraph 
     Reason:                ClusterInitializePostFalse
     Status:                False
     Type:                  InitializePost
-  Image:                   docker.io/tigergraph/tigergraph-k8s:4.2.0
+  Image:                   docker.io/tginternal/tigergraph-k8s:4.2.0-ubuntu22
   Job Backoff Times:       3
   Pod Init Labels:
     tigergraph.com/cluster-name:  test-cluster

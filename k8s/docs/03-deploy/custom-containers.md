@@ -221,4 +221,4 @@ spec:
 
 ## What's Next
 
-- Learn [how to integrate envoy sidecar containers with TG Pods](../07-reference/integrate-envoy-sidecar.md)
+- Learn [how to integrate envoy sidecar containers with TG Pods](../08-reference/integrate-envoy-sidecar.md)

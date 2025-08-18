@@ -8,51 +8,79 @@
 > If you do that, the configurations set by CR and gadmin config may conflict, leading to some unknown behavior.
 
 - [Backup \& Restore cluster by CR](#backup--restore-cluster-by-cr)
-  - [Guarantee the access to S3 Bucket](#guarantee-the-access-to-s3-bucket)
-    - [Use AWS Access Key and Secret Access Key](#use-aws-access-key-and-secret-access-key)
-    - [Create a cluster with access to S3 (Supported from Operator version 1.2.0 and TigerGraph 4.1.0)](#create-a-cluster-with-access-to-s3-supported-from-operator-version-120-and-tigergraph-410)
+  - [Guarantee the access to Cloud Storage if using Cloud backup/restore](#guarantee-the-access-to-cloud-storage-if-using-cloud-backuprestore)
+    - [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key)
+    - [Create a cluster with access to Cloud Storage (S3 Supported from Operator version 1.2.0 and TigerGraph 4.1.0)](#create-a-cluster-with-access-to-cloud-storage-s3-supported-from-operator-version-120-and-tigergraph-410)
   - [TigerGraphBackup](#tigergraphbackup)
     - [Backup to local storage](#backup-to-local-storage)
     - [Backup to S3 bucket](#backup-to-s3-bucket)
       - [Use RoleARN instead of access key to access S3 Bucket](#use-rolearn-instead-of-access-key-to-access-s3-bucket)
+    - [Backup to GCS bucket](#backup-to-gcs-bucket)
+    - [Backup to ABS container](#backup-to-abs-container)
     - [About cleanPolicy](#about-cleanpolicy)
     - [About backoffRetryPolicy](#about-backoffretrypolicy)
   - [TigerGraphBackupSchedule](#tigergraphbackupschedule)
     - [Schedule backup to local storage](#schedule-backup-to-local-storage)
     - [Schedule backup to S3 bucket](#schedule-backup-to-s3-bucket)
       - [Use RoleARN instead of access key to access S3 Bucket in TigerGraphBackupSchedule](#use-rolearn-instead-of-access-key-to-access-s3-bucket-in-tigergraphbackupschedule)
+    - [Schedule backup to GCS bucket](#schedule-backup-to-gcs-bucket)
+    - [Schedule backup to ABS container](#schedule-backup-to-abs-container)
   - [TigerGraphRestore](#tigergraphrestore)
     - [Restore from local backup](#restore-from-local-backup)
     - [Restore from backup in S3 bucket](#restore-from-backup-in-s3-bucket)
       - [Use RoleARN instead of access key to access S3 Bucket in TigerGraphRestore](#use-rolearn-instead-of-access-key-to-access-s3-bucket-in-tigergraphrestore)
+    - [Restore from backup in GCS bucket](#restore-from-backup-in-gcs-bucket)
+    - [Restore from backup in ABS container](#restore-from-backup-in-abs-container)
     - [Cross-cluster restore in existing cluster](#cross-cluster-restore-in-existing-cluster)
       - [Cluster version \>=3.9.2](#cluster-version-392)
     - [Clone a cluster(Create a new cluster and do cross-cluster restore)](#clone-a-clustercreate-a-new-cluster-and-do-cross-cluster-restore)
       - [Clone Cluster version \>=3.9.2](#clone-cluster-version-392)
+  - [Demo](#demo)
 
-## Guarantee the access to S3 Bucket
+## Guarantee the access to Cloud Storage if using Cloud backup/restore
 
-When working with backup and restore operations involving S3 buckets, you need to guarantee the access to the S3 bucket. Currently we support two ways to achieve this:
+When working with backup and restore operations with Cloud Storage, you need to guarantee the access to the Cloud Storage as below: 
 
-### Use AWS Access Key and Secret Access Key
+-  **S3 Bucket Access**
+1. Log in to your AWS Management Console.
+2. Navigate to the **IAM** service.
+3. Create a new IAM user or use an existing one.
+4. Attach the necessary permissions (e.g., `AmazonS3FullAccess` or a custom policy with specific S3 permissions).
+5. Generate an **Access Key ID** and **Secret Access Key** for the IAM user.
+6. Store the credentials securely and use them to configure access to your S3 bucket.
 
-Create a Kubernetes Secret to securely store your AWS access credentials. Here's how you can create an S3 Secret:
+-  **GCS Bucket Access**
+1. Log in to your Google Cloud Console.
+2. Navigate to the **IAM & Admin** section and create a new service account.
+3. Assign the necessary roles (e.g., `Storage Admin` or a custom role with specific GCS permissions).
+4. Generate HMAC keys for the service account by following the [Google Cloud documentation](https://cloud.google.com/storage/docs/authentication/managing-hmackeys).
+5. Download and securely store the keys for configuring access to your GCS bucket.
 
-1. **Encode AWS Access Key ID and Secret Access Key**:
+-  **ABS Container Access**
+1. Log in to your Azure Portal.
+2. Navigate to the **Storage Accounts** section and select your storage account.
+3. Under the **Security + Networking** section, go to **Access keys**.
+4. Copy the **Storage account name** and one of the **Access keys**.
+5. Use these credentials to configure access to your Azure Blob Storage container.
 
-   Before creating the Kubernetes Secret, you need to encode your AWS access key ID and secret access key in base64 format. You can use the following commands to do that:
+### Use Cloud Storage Access Key and Secret Access Key
+
+Create a Kubernetes Secret to securely store your S3/GCS/ABS Cloud Storage access credentials. Here's how you can create the Secret:
+1. **Encode Cloud Storage Access Key ID and Secret Access Key**:
+
+   Before creating the Kubernetes Secret, you need to encode your Cloud Storage access key ID and secret access key in base64 format. You can use the following commands to do that:
 
    ```bash
-   # Replace YOUR_ACCESS_KEY_ID with your actual AWS access key ID
+   # Replace YOUR_ACCESS_KEY_ID with your actual Cloud Storage access key ID
    echo -n "YOUR_ACCESS_KEY_ID" | base64
 
-   # Replace YOUR_SECRET_ACCESS_KEY with your actual AWS secret access key
+   # Replace YOUR_SECRET_ACCESS_KEY with your actual Cloud secret access key
    echo -n "YOUR_SECRET_ACCESS_KEY" | base64
    ```
 
    Note down the base64 encoded strings generated for the access key ID and secret access key.
 
-2. **Create S3 Secret YAML**:
+2. **Create Cloud Storage Secret YAML**:
 
    Create a YAML file (e.g., `s3-secret.yaml`) with the following content. Replace `YOUR_BASE64_ENCODED_ACCESS_KEY_ID` and `YOUR_BASE64_ENCODED_SECRET_ACCESS_KEY` with the actual base64 encoded values from step 1:
 
@@ -79,7 +107,7 @@ Create a Kubernetes Secret to securely store your AWS access credentials. Here's
 
 By creating an S3 Secret in this manner, you ensure that your AWS access credentials are securely stored and can be easily referenced when needed for backup and restore tasks involving S3 buckets.
 
-### Create a cluster with access to S3 (Supported from Operator version 1.2.0 and TigerGraph 4.1.0)
+### Create a cluster with access to Cloud Storage (S3 Supported from Operator version 1.2.0 and TigerGraph 4.1.0)
 
 If you want to use RoleARN instead of access key in TigerGraphBackup/TigerGraphRestore CR, you can create a cluster with access to S3. You can refer to [Create a TigerGraph cluster with access to S3](./create-tg-with-access-to-s3.md).
 
@@ -104,7 +132,7 @@ spec:
     storage: local
     # Use this field if type is local
     local:
-      path: /home/tigergraph/tigergraph/data/backup
+      path: /home/tigergraph/mybackup
   
   # Configure the name of backup files and the path storing temporary files
   backupConfig:
@@ -149,20 +177,25 @@ spec:
     forceDeleteAfterMaxRetries: false
 ```
 
-> [!NOTE]
-> Please use subpath of `/home/tigergraph/tigergraph/data/` as local path for backup since this path is mounted with PV. For example, you can use `/home/tigergraph/tigergraph/data/mybackup` .If you do not use that, you will lose your backup data if the pod restarts.
+> [!IMPORTANT]
+> Please don't use subpath of DataRoot or AppRoot as the local path for backup. These paths are forbidden because they may be cleaned up when uninstalling TigerGraph.
+> The best practice is to configure an additionalStorage for backup in TigerGraph CR. For example：
+> ```yaml
+> additionalStorages:
+>   - name: tg-backup
+>     storageSize: 100Gi
+>     mountPath: /home/tigergraph/mybackup
+> ```
+> Then you can use `/home/tigergraph/mybackup` as the local path for backup.
 >
-> And be careful that don’t use the same path for local path as the staging path. If you don’t configure staging path, the default staging path is `/home/tigergraph/tigergraph/data/backup`(version < 3.10.0) or `/home/tigergraph/tigergraph/data/backup_staging_dir/backup` (version >= 3.10.0),
-> if you set local path as `/home/tigergraph/tigergraph/data/backup` for TigerGraph < 3.10.0 or `/home/tigergraph/tigergraph/data/backup_staging_dir/backup` for TigerGraph >= 3.10.0, the backup will fail.
->
-> If you configure staging path by `.spec.backupConfig.stagingPath`, the actual staging path will be `${stage_path}/backup`. For example, if you set `stagingPath: /home/tigergraph/temp`, the actual staging path will be `/home/tigergraph/temp/backup`. And you should not use `/home/tigergraph/temp/backup` as local path.
+> If you configure staging path by `.spec.backupConfig.stagingPath`, the actual staging path will be `${staging_path}/backup`. For example, if you set `stagingPath: /home/tigergraph/temp`, the actual staging path will be `/home/tigergraph/temp/backup`. And you should not use `/home/tigergraph/temp/backup` as local path.
 
 > [!IMPORTANT]
 > Please remember which local path you use and use the same path if you want to restore the backup package you create.
 
 ### Backup to S3 bucket
 
-Assume that you have already created an S3 Secret named `s3-secret` containing your AWS access credentials following the instructions in the previous section [Use AWS Access Key and Secret Access Key](#use-aws-access-key-and-secret-access-key).
+Assume that you have already created an S3 Secret named `s3-secret` containing your AWS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
 
 Certainly, here's the YAML file for performing a backup to an S3 bucket using a previously created Secret named `s3-secret`. You can save this content to a file (e.g., `backup-s3.yaml`), and then run `kubectl apply -f backup-s3.yaml -n YOUR_NAMESPACE` to create the backup.
 
@@ -245,6 +278,137 @@ spec:
 > If you set both of them, TigerGraph will only use `roleARN` and ignore the `secretKeyName`.
 > So we highly recommend you to use just one of them.
 
+### Backup to GCS bucket
+
+Assume that you have already created an GCS Secret named `gcs-secret` containing your GCS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
+
+Certainly, here's the YAML file for performing a backup to an GCS bucket using a previously created Secret named `gcs-secret`. You can save this content to a file (e.g., `backup-gcs.yaml`), and then run `kubectl apply -f backup-gcs.yaml -n YOUR_NAMESPACE` to create the backup.
+
+```yaml
+apiVersion: graphdb.tigergraph.com/v1alpha1
+kind: TigerGraphBackup
+metadata:
+  name: test-cluster-backup-gcs
+spec:
+  # Specify which cluster to backup in the SAME NAMESPACE as the backup job
+  clusterName: test-cluster
+  destination:
+    storage: gcsBucket
+    gcsBucket:
+      # Specify the name of the GCS bucket you want to use
+      bucketName: operator-backup
+      # Specify the Secret containing the GCS access key and secret access key
+      secretKeyName: gcs-secret
+
+  # Configure the name of backup files and the path storing temporary files
+  backupConfig:
+    # Optional: Set the tag of the backup, if not set, the tag will be the name of this CR
+    # Note: this field is Required for TigerGraph Operator < 1.1.0
+    tag: gcs
+    # Optional: Set the path for temporary staging files
+    stagingPath: /home/tigergraph/tigergraph/data
+    # Optional: If 'incremental' is set to true, incremental backup will be performed
+    incremental: false
+    # Optional: Set the timeout value for the backup process (default is 18000 seconds)
+    timeout: 18000
+    # Optional: Specify the number of processes to use for compression (0 uses the number of CPU cores)
+    compressProcessNumber: 0
+    # Optional: (Requires TigerGraph Operator >= 0.0.9 and TigerGraph >= 3.9.3)
+    # Choose the compression level for the backup: DefaultCompression/BestSpeed/BestCompression
+    compressLevel: DefaultCompression # Choose from DefaultCompression/BestSpeed/BestCompression
+
+  # Optional: Set the policy for cleaning up backup package when deleting the backup CR
+  # Choose from Delete/Retain
+  # The default behavior is to retain the backup package.
+  # If you want to delete the backup package when deleting the backup CR, 
+  # you can set the cleanPolicy to Delete. 
+  # With Delete policy, 
+  # TigerGraph Operator will create a backup-clean-job when the backup CR is deleted, 
+  # to make sure that the backup package is removed before deleting the backup CR.
+  cleanPolicy: Delete
+
+  # Optional: Set the retry policy for backup CR
+  backoffRetryPolicy:
+    # set maxRetryTimes for backup CR
+    maxRetryTimes: 3
+    # set the min duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    minRetryDuration: 5s
+    # set the max duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    maxRetryDuration: 10s
+    # If the value is true, the deletion of backup CR won't be blocked by failed backup-clean-job
+    # that means, when backup-clean-job exceeds the maxRetryTimes
+    # the backup CR will be deleted directly, the backup package still exists in cluster
+    forceDeleteAfterMaxRetries: false
+```
+
+### Backup to ABS container
+
+Assume that you have already created an ABS Secret named `abs-secret` containing your ABS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
+
+Certainly, here's the YAML file for performing a backup to an ABS container using a previously created Secret named `abs-secret`. You can save this content to a file (e.g., `backup-abs.yaml`), and then run `kubectl apply -f backup-abs.yaml -n YOUR_NAMESPACE` to create the backup.
+
+```yaml
+apiVersion: graphdb.tigergraph.com/v1alpha1
+kind: TigerGraphBackup
+metadata:
+  name: test-cluster-backup-abs
+spec:
+  # Specify which cluster to backup in the SAME NAMESPACE as the backup job
+  clusterName: test-cluster
+  destination:
+    storage: absContainer
+    absContainer:
+      # Specify the name of the ABS container you want to use
+      bucketName: operator-backup
+      # Specify the Secret containing the ABS access key and secret access key
+      secretKeyName: abs-secret
+
+  # Configure the name of backup files and the path storing temporary files
+  backupConfig:
+    # Optional: Set the tag of the backup, if not set, the tag will be the name of this CR
+    # Note: this field is Required for TigerGraph Operator < 1.1.0
+    tag: abs
+    # Optional: Set the path for temporary staging files
+    stagingPath: /home/tigergraph/tigergraph/data
+    # Optional: If 'incremental' is set to true, incremental backup will be performed
+    incremental: false
+    # Optional: Set the timeout value for the backup process (default is 18000 seconds)
+    timeout: 18000
+    # Optional: Specify the number of processes to use for compression (0 uses the number of CPU cores)
+    compressProcessNumber: 0
+    # Optional: (Requires TigerGraph Operator >= 0.0.9 and TigerGraph >= 3.9.3)
+    # Choose the compression level for the backup: DefaultCompression/BestSpeed/BestCompression
+    compressLevel: DefaultCompression # Choose from DefaultCompression/BestSpeed/BestCompression
+
+  # Optional: Set the policy for cleaning up backup package when deleting the backup CR
+  # Choose from Delete/Retain
+  # The default behavior is to retain the backup package.
+  # If you want to delete the backup package when deleting the backup CR, 
+  # you can set the cleanPolicy to Delete. 
+  # With Delete policy, 
+  # TigerGraph Operator will create a backup-clean-job when the backup CR is deleted, 
+  # to make sure that the backup package is removed before deleting the backup CR.
+  cleanPolicy: Delete
+
+  # Optional: Set the retry policy for backup CR
+  backoffRetryPolicy:
+    # set maxRetryTimes for backup CR
+    maxRetryTimes: 3
+    # set the min duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    minRetryDuration: 5s
+    # set the max duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    maxRetryDuration: 10s
+    # If the value is true, the deletion of backup CR won't be blocked by failed backup-clean-job
+    # that means, when backup-clean-job exceeds the maxRetryTimes
+    # the backup CR will be deleted directly, the backup package still exists in cluster
+    forceDeleteAfterMaxRetries: false
+```
+
+
 ### About cleanPolicy
 
 > [!IMPORTANT]
@@ -300,7 +464,7 @@ spec:
       storage: local
       # Use this field if type is local
       local:
-        path: /home/tigergraph/tigergraph/data/backup
+        path: /home/tigergraph/mybackup
     
     # Configure the name of backup files and the path storing temporary files
     backupConfig:
@@ -346,7 +510,7 @@ spec:
 
 ### Schedule backup to S3 bucket
 
-Assume that you have already created an S3 Secret named `s3-secret` containing your AWS access credentials following the instructions in the previous section [Use AWS Access Key and Secret Access Key](#use-aws-access-key-and-secret-access-key).
+Assume that you have already created an S3 Secret named `s3-secret` containing your AWS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
 
 ```yaml
 apiVersion: graphdb.tigergraph.com/v1alpha1
@@ -437,6 +601,150 @@ spec:
 > If you set both of them, TigerGraph will only use `roleARN` and ignore the `secretKeyName`.
 > So we highly recommend you to use just one of them.
 
+### Schedule backup to GCS bucket
+
+Assume that you have already created an GCS Secret named `gcs-secret` containing your GCS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
+
+```yaml
+apiVersion: graphdb.tigergraph.com/v1alpha1
+kind: TigerGraphBackupSchedule
+metadata:
+  name: test-cluster-schedule-daily
+spec:
+  # Cronjob shedule
+  schedule: "0 0 * * *"
+  # Strategies for managing backups
+  # We will delete oldest backups according to the strategies automatically
+  strategy:
+    # We will only retain 20 backups
+    maxBackupFiles: 20
+    # A backup can only exist for 3 days
+    maxReservedDays: 3
+    maxRetry: 10 
+  # Optional : is pause is true, the cronjob will be suspended
+  pause: false
+  backupTemplate:
+    clusterName: test-cluster
+    destination:
+      storage: gcsBucket
+      gcsBucket:
+        # specify the bucket you want to use
+        bucketName: operator-backup
+        secretKeyName: gcs-secret
+    # Configure the name of backup files and the path storing temporary files
+    backupConfig:
+      # Optional: Set the tag of the backup, if not set, the tag will be the name of this CR
+      # Note: this field is Required for TigerGraph Operator < 1.1.0
+      tag: gcs-daily
+      # Optional
+      stagingPath: /home/tigergraph/tigergraph/data/backup-staging
+      # Optional :if incremental is true, incremental backup will be performed
+      incremental: false
+      # Optional
+      timeout: 18000
+      # Optional :specify the number of process to do compress
+      compressProcessNumber: 0
+      # Optional: (TigerGraph Operator>=0.0.9 and TigerGraph>=3.9.3) specify the compress level for backup
+      compressLevel: DefaultCompression #choose from DefaultCompression/BestSpeed/BestCompression
+
+    # Optional: Set the policy for cleaning up backup package when deleting the backup CR
+    # Choose from Delete/Retain
+    # For backup CR created by backup schedule, 
+    # the default behavior is to delete the backup package. 
+    # The backup schedule CR use this feature to keep maxBackupFiles.
+    # If you want to keep all backup packages created by backup schedule,
+    # you can set the cleanPolicy to Retain. 
+    # But at the same time, the maxBackupFiles and maxReservedDays won't work properly.
+    cleanPolicy: Delete
+
+    # Optional: Set the retry policy for backup CR
+    backoffRetryPolicy:
+      # set maxRetryTimes for backup CR
+      maxRetryTimes: 3
+      # set the min duration between two retries, 
+      # the format is like "5s","10m","1h","1h20m5s"
+      minRetryDuration: 5s
+      # set the max duration between two retries, 
+      # the format is like "5s","10m","1h","1h20m5s"
+      maxRetryDuration: 10s
+      # If the value is true, the deletion of backup CR won't be blocked by failed backup-clean-job
+      # that means, when backup-clean-job exceeds the maxRetryTimes
+      # the backup CR will be deleted directly, the backup package still exists in cluster
+      forceDeleteAfterMaxRetries: false
+```
+
+### Schedule backup to ABS container
+
+Assume that you have already created an ABS Secret named `abs-secret` containing your ABS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
+
+```yaml
+apiVersion: graphdb.tigergraph.com/v1alpha1
+kind: TigerGraphBackupSchedule
+metadata:
+  name: test-cluster-schedule-daily
+spec:
+  # Cronjob shedule
+  schedule: "0 0 * * *"
+  # Strategies for managing backups
+  # We will delete oldest backups according to the strategies automatically
+  strategy:
+    # We will only retain 20 backups
+    maxBackupFiles: 20
+    # A backup can only exist for 3 days
+    maxReservedDays: 3
+    maxRetry: 10 
+  # Optional : is pause is true, the cronjob will be suspended
+  pause: false
+  backupTemplate:
+    clusterName: test-cluster
+    destination:
+      storage: absContainer
+      absContainer:
+        # specify the bucket you want to use
+        bucketName: operator-backup
+        secretKeyName: abs-secret
+    # Configure the name of backup files and the path storing temporary files
+    backupConfig:
+      # Optional: Set the tag of the backup, if not set, the tag will be the name of this CR
+      # Note: this field is Required for TigerGraph Operator < 1.1.0
+      tag: abs-daily
+      # Optional
+      stagingPath: /home/tigergraph/tigergraph/data/backup-staging
+      # Optional :if incremental is true, incremental backup will be performed
+      incremental: false
+      # Optional
+      timeout: 18000
+      # Optional :specify the number of process to do compress
+      compressProcessNumber: 0
+      # Optional: (TigerGraph Operator>=0.0.9 and TigerGraph>=3.9.3) specify the compress level for backup
+      compressLevel: DefaultCompression #choose from DefaultCompression/BestSpeed/BestCompression
+
+    # Optional: Set the policy for cleaning up backup package when deleting the backup CR
+    # Choose from Delete/Retain
+    # For backup CR created by backup schedule, 
+    # the default behavior is to delete the backup package. 
+    # The backup schedule CR use this feature to keep maxBackupFiles.
+    # If you want to keep all backup packages created by backup schedule,
+    # you can set the cleanPolicy to Retain. 
+    # But at the same time, the maxBackupFiles and maxReservedDays won't work properly.
+    cleanPolicy: Delete
+
+    # Optional: Set the retry policy for backup CR
+    backoffRetryPolicy:
+      # set maxRetryTimes for backup CR
+      maxRetryTimes: 3
+      # set the min duration between two retries, 
+      # the format is like "5s","10m","1h","1h20m5s"
+      minRetryDuration: 5s
+      # set the max duration between two retries, 
+      # the format is like "5s","10m","1h","1h20m5s"
+      maxRetryDuration: 10s
+      # If the value is true, the deletion of backup CR won't be blocked by failed backup-clean-job
+      # that means, when backup-clean-job exceeds the maxRetryTimes
+      # the backup CR will be deleted directly, the backup package still exists in cluster
+      forceDeleteAfterMaxRetries: false
+```
+
 ## TigerGraphRestore
 
 ### Restore from local backup
@@ -457,7 +765,7 @@ spec:
   source:
     storage: local
     local:
-      path: /home/tigergraph/tigergraph/data/backup
+      path: /home/tigergraph/mybackup
   # Specify the name of cluster
   clusterName: test-cluster
 
@@ -475,7 +783,7 @@ spec:
 
 ### Restore from backup in S3 bucket
 
-Assume that you have already created an S3 Secret named `s3-secret` containing your AWS access credentials following the instructions in the previous section [Use AWS Access Key and Secret Access Key](#use-aws-access-key-and-secret-access-key).
+Assume that you have already created an S3 Secret named `s3-secret` containing your AWS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
 
 ```yaml
 apiVersion: graphdb.tigergraph.com/v1alpha1
@@ -523,6 +831,80 @@ spec:
     s3Bucket:
       bucketName: operator-backup
       roleARN: arn:aws:iam::123456789012:role/role-name
+```
+
+### Restore from backup in GCS bucket
+
+Assume that you have already created an GCS Secret named `gcs-secret` containing your GCS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
+
+```yaml
+apiVersion: graphdb.tigergraph.com/v1alpha1
+kind: TigerGraphRestore
+metadata:
+  name: restore-from-gcs
+spec:
+  restoreConfig:
+    tag: daily-2021-11-04T120000
+    # Optional
+    stagingPath: /home/tigergraph/tigergraph/data/restore-staging
+    # Optional: (TigerGraph Operator>=0.0.9 and TigerGraph>=3.9.3) should be >=0
+    decompressProcessNumber: 2
+  source:
+    storage: gcsBucket 
+    gcsBucket:
+      # specify the bucket you want to use
+      bucketName: operator-backup
+      secretKeyName: gcs-secret
+  # Specify the name of cluster
+  clusterName: test-cluster
+
+  # Optional: Set the retry policy for restore CR
+  backoffRetryPolicy:
+    # set maxRetryTimes for restore CR
+    maxRetryTimes: 3
+    # set the min duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    minRetryDuration: 5s
+    # set the max duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    maxRetryDuration: 10s
+```
+
+### Restore from backup in ABS container
+
+Assume that you have already created an ABS Secret named `abs-secret` containing your ABS access credentials following the instructions in the previous section [Use Cloud Storage Access Key and Secret Access Key](#use-cloud-storage-access-key-and-secret-access-key).
+
+```yaml
+apiVersion: graphdb.tigergraph.com/v1alpha1
+kind: TigerGraphRestore
+metadata:
+  name: restore-from-abs
+spec:
+  restoreConfig:
+    tag: daily-2021-11-04T120000
+    # Optional
+    stagingPath: /home/tigergraph/tigergraph/data/restore-staging
+    # Optional: (TigerGraph Operator>=0.0.9 and TigerGraph>=3.9.3) should be >=0
+    decompressProcessNumber: 2
+  source:
+    storage: absContainer 
+    absContainer:
+      # specify the bucket you want to use
+      bucketName: operator-backup
+      secretKeyName: abs-secret
+  # Specify the name of cluster
+  clusterName: test-cluster
+
+  # Optional: Set the retry policy for restore CR
+  backoffRetryPolicy:
+    # set maxRetryTimes for restore CR
+    maxRetryTimes: 3
+    # set the min duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    minRetryDuration: 5s
+    # set the max duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    maxRetryDuration: 10s
 ```
 
 ### Cross-cluster restore in existing cluster
@@ -743,3 +1125,9 @@ spec:
     ha: 1
     license: "YOUR_LICENSE"
 ```
+
+## Demo
+
+Please watch the following video to see how to create Backup and Restore with GCS/ABS storage using TigerGraph Operator:
+
+[How to Create Backup and Restore With GCS/ABS Storage](https://drive.google.com/file/d/1gyiE_1PzdljaiYldmQFBxyswxNoNdBdr/view?usp=sharing)

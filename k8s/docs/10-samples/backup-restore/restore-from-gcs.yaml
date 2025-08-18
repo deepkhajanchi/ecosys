@@ -1,0 +1,30 @@
+apiVersion: graphdb.tigergraph.com/v1alpha1
+kind: TigerGraphRestore
+metadata:
+  name: restore-from-gcs
+spec:
+  restoreConfig:
+    tag: daily-2025-03-05T021355.200
+    # Optional
+    stagingPath: /home/tigergraph/tigergraph/data/restore-staging
+    # Optional: (TigerGraph Operator>=v0.0.9 and TigerGraph>=v3.9.3) should be >=0
+    decompressProcessNumber: 2
+  source:
+    storage: gcsBucket 
+    gcsBucket:
+      # specify the bucket you want to use
+      bucketName: operator-backup
+      secretKeyName: gcs-secret
+  # Specify the name of cluster
+  clusterName: test-cluster
+
+  # Optional: Set the retry policy for restore CR
+  backoffRetryPolicy:
+    # set maxRetryTimes for restore CR
+    maxRetryTimes: 3
+    # set the min duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    minRetryDuration: 5s
+    # set the max duration between two retries, 
+    # the format is like "5s","10m","1h","1h20m5s"
+    maxRetryDuration: 10s

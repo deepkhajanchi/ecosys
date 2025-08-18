@@ -10,11 +10,13 @@ The easiest way to update the license is to use `kubectl tg update --cluster-nam
 
 ## Whether to support TigerGraph downgrade with Operator？
 
-The TigerGraph downgrade is not recommended and the behavior is undefined, you can find the solution in the [troubleshoot section](../05-troubleshoot/cluster-management.md) if you accidentally performed a downgrade.
+The TigerGraph downgrade is not recommended and the behavior is undefined, you can find the solution in the [troubleshoot section](../06-troubleshoot/cluster-management.md) if you accidentally performed a downgrade.
 
 ## Does TigerGraph Operator support resizing the persistent volume for an existing TigerGraph cluster on K8s?
 
-At present, Kubernetes offers automatic volume resizing for persistent volumes, but not for volumes linked to StatefulSets. Since some of the CSI does not support ALLOWVOLUMEEXPANSION, the Operator doesn't support to resize it automatically, you can refer to [persistent volume resizing](../07-reference/expand-persistent-volume.md) to do it manually.
+From TigerGraph Operator 1.2.0, we provide a way to expand the storage of TigerGraph cluster by modifying `.spec.storage` in TigerGraph CR directly. TigerGraph Operator will expand the PVCs automatically.
+
+When you want to expand the storage of TigerGraph cluster, you can modify `.spec.storage` in TigerGraph CR and apply it or use `kubectl tg` command to increase the storage size. TigerGraph Operator will expand each PVC of the TigerGraph cluster automatically. you can refer to [Expand Storage of TigerGraph cluster](../04-manage/expand-storage.md) for the details.
 
 ## Does TigerGraph cluster support high availability when performing cluster management such as resource update, upgrade, scale and backup?
 

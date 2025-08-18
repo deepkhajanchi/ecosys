@@ -79,7 +79,7 @@ To make it clear, we list all possible status of TigerGraph cluster here, and de
 | StorageExpandCheck | Unknown,True,False | Check if the PVCs can be expanded | |
 | StorageExpandPre | Unknown,True | Delete all TigerGraph pods to pause the cluster | The TigerGraph services are unavailable |
 | StorageExpanding | Unknown,True | Expand PVCs of TigerGraph clusters | When cluster is in this status, there is not StatefulSet and Pod. So all TigerGraph services are unavailable |
-| StorageExpandPost | Unknown,True | Recreate TigerGraph to resume the cluster, finalize the storage expansion | |
+| StorageExpandPost | Unknown,True | Recreate TigerGraph to resume the cluster, finalize the storage expansion | Since 1.6.0, we support adding additionalStorages by StorageExpand. In StorageExpandPost state, the added storages will be created by StatefulSet automactically. |
 
 Meaning of condition status:
 

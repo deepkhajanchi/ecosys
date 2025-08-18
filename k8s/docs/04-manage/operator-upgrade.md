@@ -84,7 +84,7 @@ Starting with TigerGraph Operator 1.0.0, the fields `spec.initTGConfig.license` 
 
 ```bash
 kubectl tg create --namespace tigergraph --cluster-name test-cluster --license  ${YOUR_LICENSE} \ 
--k ssh-key-secret --size 3 --ha 2  --storage-class standard --storage-size 100G --cpu 6000m --memory 12Gi
+-k ssh-key-secret --size 4 --ha 2  --storage-class standard --storage-size 100G --cpu 6000m --memory 12Gi
 
 Error from server (BadRequest): error when creating "STDIN": TigerGraph in version "v1alpha1" cannot be handled as a TigerGraph: strict decoding error: unknown field "spec.ha", unknown field "spec.license"
 ```
@@ -206,7 +206,7 @@ deployment.apps/tigergraph-operator-controller-manager condition met
 
 If you don't remember the cluster configuration, you can check the previously saved TigerGraph CR. You must ensure the configurations below are the same as before
 
-If you want to use the TigerGraph CR YAML file to deploy the cluster, you need to check the new version [TigerGraph cluster CR sample example](../09-samples/deploy/tigergraph-cluster.yaml) and update the cluster configuration according to your old version TigerGraph CR.
+If you want to use the TigerGraph CR YAML file to deploy the cluster, you need to check the new version [TigerGraph cluster CR sample example](../10-samples/deploy/tigergraph-cluster.yaml) and update the cluster configuration according to your old version TigerGraph CR.
 
 - Create a private ssh key secret if necessary
 
@@ -223,7 +223,7 @@ If you want to use the TigerGraph CR YAML file to deploy the cluster, you need t
 
   ```bash
   kubectl tg create --namespace tigergraph --cluster-name test-cluster --version 3.9.3 --license ${YOUR_LICENSE} \
-  -k ssh-key-secret --size 3 --ha 2  --storage-class standard --storage-size 100G --cpu 6000m --memory 12Gi
+  -k ssh-key-secret --size 4 --ha 2  --storage-class standard --storage-size 100G --cpu 6000m --memory 12Gi
   ```
 
   Ensure TigerGraph cluster version and status:
@@ -273,15 +273,15 @@ If the HA update process is interrupted by an operation such as the update pod b
 
 Best practice for upgrading TigerGraph <=3.9.3 with a single PVC and TigerGraph Operator <=0.0.9 to TigerGraph 3.10.0 or above with Multiple PVCs and TigerGraph Operator 1.0.0 or Above:
 
-- In an environment with TigerGraph <=3.9.3 and TigerGraph Operator <=0.0.9, perform a backup of TigerGraph to S3 or local storage first.
+- In an environment with TigerGraph <=3.9.3 and TigerGraph Operator <=0.0.9, perform a backup of TigerGraph to S3/GCS/ABS or local storage first.
 
 > [!WARNING]
 > If you use local backup, ensure it is stored outside the Pod for persistent storage.
 
-  For instructions on how to perform a backup of TigerGraph to S3 or local storage, please refer to the following documents for details:
+  For instructions on how to perform a backup of TigerGraph to S3/GCS/ABS or local storage, please refer to the following documents for details:
 
 > [!IMPORTANT]
-> Please set `cleanPolicy` to `Retain` when performing a backup of TigerGraph to S3 or local storage,
+> Please set `cleanPolicy` to `Retain` when performing a backup of TigerGraph to S3/GCS/ABS or local storage,
 > otherwise, the backup package will be deleted when deleting TigerGraph CRDs or TigerGraph cluster with `--cascade` option.
 
   [Backup & Restore cluster by CR](../04-manage/backup-and-restore/backup-restore-by-cr.md)
@@ -320,7 +320,7 @@ Best practice for upgrading TigerGraph <=3.9.3 with a single PVC and TigerGraph 
   
 - Restore the old TigerGraph cluster using the backup package you created previously.
 
-  For instructions on how to restore a TigerGraph cluster from S3 or local storage, please refer to the following documents for details:
+  For instructions on how to restore a TigerGraph cluster from S3/GCS/ABS or local storage, please refer to the following documents for details:
 
   [Backup & Restore cluster by CR](../04-manage/backup-and-restore/backup-restore-by-cr.md)
 
@@ -359,7 +359,7 @@ Starting with TigerGraph Operator 1.0.0, the fields `spec.initTGConfig.license` 
 
 ```bash
 kubectl tg create --namespace tigergraph --cluster-name test-cluster --license  ${YOUR_LICENSE} \ 
--k ssh-key-secret --size 3 --ha 2  --storage-class standard --storage-size 100G --cpu 6000m --memory 12Gi
+-k ssh-key-secret --size 4 --ha 2  --storage-class standard --storage-size 100G --cpu 6000m --memory 12Gi
 
 Error from server (BadRequest): error when creating "STDIN": TigerGraph in version "v1alpha1" cannot be handled as a TigerGraph: strict decoding error: unknown field "spec.ha", unknown field "spec.license"
 ```

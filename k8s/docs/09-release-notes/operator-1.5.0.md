@@ -88,7 +88,6 @@ Refer to the documentation [How to upgrade TigerGraph Kubernetes Operator](../04
 - Base image upgraded to Ubuntu 22.04 for TigerGraph K8s Docker image.
 - Retry mechanism for gadmin start --local in PostStart script.
 - Predelete action skipped when an image pull fails.
-- Improve the stability of the readiness check by checking the service status using the command gadmin status --local
 
 ## Bug Fixes
 

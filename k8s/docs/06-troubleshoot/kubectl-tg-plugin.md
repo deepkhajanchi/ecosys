@@ -6,7 +6,6 @@ This document provides solutions to common issues that may arise when using the 
   - [Issues encountered when using the `kubectl tg` plugin on MacOS](#issues-encountered-when-using-the-kubectl-tg-plugin-on-macos)
   - [Use `kubectl tg` plugin on Windows](#use-kubectl-tg-plugin-on-windows)
 
-
 ## Issues encountered when using the `kubectl tg` plugin on MacOS
 
 We only ensure that the `kubectl tg` command can run on GNU/Linux because it relies on some GNU Core Utilities such as `sed` and `grep`.

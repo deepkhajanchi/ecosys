@@ -487,4 +487,4 @@ customVolumeMounts:
 
 If you are interested in creating static and dynamic persistent volume storage, refer to the following document:
 
-- [How to use static & dynamic persistent volume storage](../07-reference/static-and-dynamic-persistent-volume-storage.md)
+- [How to use static & dynamic persistent volume storage](../08-reference/static-and-dynamic-persistent-volume-storage.md)

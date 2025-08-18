@@ -43,7 +43,7 @@ string
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -98,7 +98,20 @@ string
 <td>
 <p>The license for TigerGraph will be applied when the cluster:
 1. Is in the status InitializePost, if the cluster is being initialized for the first time.
-2. Is in the status ConfigUpdate, when the license is updated.</p>
+2. Is in the status ConfigUpdate, when the license is updated.
+This field requires a license string in plain text. If you worry about the security of the license,
+please use licenseSecretName instead.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>licenseSecretName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Set the licenseSecretName to use the license stored in a Secret.</p>
 </td>
 </tr>
 <tr>
@@ -116,7 +129,7 @@ string
 <td>
 <code>imagePullPolicy</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -129,7 +142,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>imagePullSecrets</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -165,7 +178,7 @@ string
 <td>
 <code>resources</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -219,7 +232,7 @@ AffinityConfiguration
 <td>
 <code>initContainers</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -233,7 +246,7 @@ AffinityConfiguration
 <td>
 <code>sidecarContainers</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -247,7 +260,7 @@ AffinityConfiguration
 <td>
 <code>customVolumes</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -261,7 +274,7 @@ AffinityConfiguration
 <td>
 <code>customVolumeMounts</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -366,7 +379,7 @@ Refer to <a href="../04-manage/pause-and-resume.md">Pause and Resume TigerGraph 
 <td>
 <code>securityContext</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#securitycontext-v1-core">
 Kubernetes core/v1.SecurityContext
 </a>
 </em>
@@ -409,7 +422,7 @@ Refer to <a href="../03-deploy/region-awareness-with-pod-topology-spread-constra
 <td>
 <code>topologySpreadConstraints</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#topologyspreadconstraint-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#topologyspreadconstraint-v1-core">
 []Kubernetes core/v1.TopologySpreadConstraint
 </a>
 </em>
@@ -499,7 +512,7 @@ string
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -647,7 +660,7 @@ string
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -770,7 +783,7 @@ string
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -878,6 +891,61 @@ TigerGraphRestoreStatus
 </tr>
 </tbody>
 </table>
+<h3 id="graphdb.tigergraph.com/v1alpha1.ABSContainer">ABSContainer</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#graphdb.tigergraph.com/v1alpha1.Destination">Destination</a>)
+</p>
+<p>
+<p>ABSContainer is the configuration of Azure Blob used by backup/restore</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>containerName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>The name of the Azure Blob container used to store backups</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>secretKeyName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>a Secret should be created in cluster
+the secret should contain AccessKeyID and SecretAccessKey</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>endpoint</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>An Azure Blob optional endpoint URL(hostname only or fully qualified URI, such as https://<account-name>.blob.core.windows.net)
+that overrides the default generated endpoint for a client.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="graphdb.tigergraph.com/v1alpha1.AffinityConfiguration">AffinityConfiguration</h3>
 <p>
 (<em>Appears on:</em>
@@ -909,7 +977,7 @@ map[string]string
 <td>
 <code>affinity</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -923,7 +991,7 @@ Kubernetes core/v1.Affinity
 <td>
 <code>tolerations</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#toleration-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
 </a>
 </em>
@@ -1177,7 +1245,7 @@ string
 <td>
 <code>time</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -1355,7 +1423,7 @@ BackupStorageType
 </td>
 <td>
 <p>Set the storage type of the backup
-Available values are local, s3Bucket</p>
+Available values are local, s3Bucket, gcsBucket, absContainer</p>
 </td>
 </tr>
 <tr>
@@ -1384,6 +1452,89 @@ S3Bucket
 <td>
 <em>(Optional)</em>
 <p>Configure this field if you choose s3Bucket storage</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>gcsBucket</code></br>
+<em>
+<a href="#graphdb.tigergraph.com/v1alpha1.GCSBucket">
+GCSBucket
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Configure this field if you choose gcsBucket storage</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>absContainer</code></br>
+<em>
+<a href="#graphdb.tigergraph.com/v1alpha1.ABSContainer">
+ABSContainer
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Configure this field if you choose azureBlob storage container</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="graphdb.tigergraph.com/v1alpha1.GCSBucket">GCSBucket</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#graphdb.tigergraph.com/v1alpha1.Destination">Destination</a>)
+</p>
+<p>
+<p>GCSBucket is the configuration of GCS bucket used by backup/restore</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>bucketName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>The name of the GCS bucket used to store backups</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>secretKeyName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>a Secret should be created in cluster
+the secret should contain AccessKeyID and SecretAccessKey</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>endpoint</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>An GCS optional endpoint URL(hostname only or fully qualified URI, such as <a href="https://storage.googleapis.com/">https://storage.googleapis.com/</a>)
+that overrides the default generated endpoint for a client.</p>
 </td>
 </tr>
 </tbody>
@@ -1547,7 +1698,7 @@ when using PathType with value &ldquo;Exact&rdquo; or &ldquo;Prefix&rdquo;.</p>
 <td>
 <code>pathType</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#pathtype-v1-networking">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#pathtype-v1-networking">
 Kubernetes networking/v1.PathType
 </a>
 </em>
@@ -1662,7 +1813,7 @@ KafkaSecurity
 <td>
 <code>type</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#servicetype-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#servicetype-v1-core">
 Kubernetes core/v1.ServiceType
 </a>
 </em>
@@ -1697,8 +1848,8 @@ map[string]string
 <td>
 <code>externalTrafficPolicy</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#serviceexternaltrafficpolicytype-v1-core">
-Kubernetes core/v1.ServiceExternalTrafficPolicyType
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#serviceexternaltrafficpolicy-v1-core">
+Kubernetes core/v1.ServiceExternalTrafficPolicy
 </a>
 </em>
 </td>
@@ -1869,7 +2020,7 @@ have to recover it by yourself.</p>
 <td>
 <code>type</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#servicetype-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#servicetype-v1-core">
 Kubernetes core/v1.ServiceType
 </a>
 </em>
@@ -2273,7 +2424,7 @@ See <a href="../04-manage/backup-and-restore/create-tg-with-access-to-s3.md">Cre
 <td>
 <code>type</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#servicetype-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#servicetype-v1-core">
 Kubernetes core/v1.ServiceType
 </a>
 </em>
@@ -2310,8 +2461,8 @@ map[string]string
 <td>
 <code>externalTrafficPolicy</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#serviceexternaltrafficpolicytype-v1-core">
-Kubernetes core/v1.ServiceExternalTrafficPolicyType
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#serviceexternaltrafficpolicy-v1-core">
+Kubernetes core/v1.ServiceExternalTrafficPolicy
 </a>
 </em>
 </td>
@@ -2571,7 +2722,7 @@ at the scheduled time</p>
 <td>
 <code>lastScheduleTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2584,7 +2735,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>lastSuccessfulTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2608,7 +2759,7 @@ string
 <td>
 <code>nextScheduleTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2621,7 +2772,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>conditions</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#condition-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#condition-v1-meta">
 []Kubernetes meta/v1.Condition
 </a>
 </em>
@@ -2762,7 +2913,7 @@ when deleting CR
 <td>
 <code>startTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2775,7 +2926,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>completionTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2788,7 +2939,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>conditions</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#condition-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#condition-v1-meta">
 []Kubernetes meta/v1.Condition
 </a>
 </em>
@@ -2851,7 +3002,7 @@ BackupInfo
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -2943,7 +3094,7 @@ TigerGraphMonitorConditionType
 <td>
 <code>ConditionStatus</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#conditionstatus-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#conditionstatus-v1-meta">
 Kubernetes meta/v1.ConditionStatus
 </a>
 </em>
@@ -3023,7 +3174,7 @@ Kubernetes cluster.</p>
 <td>
 <code>conditions</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#condition-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#condition-v1-meta">
 []Kubernetes meta/v1.Condition
 </a>
 </em>
@@ -3175,7 +3326,7 @@ BackoffRetryPolicy
 <td>
 <code>startTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -3188,7 +3339,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>completionTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -3201,7 +3352,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>conditions</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#condition-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#condition-v1-meta">
 []Kubernetes meta/v1.Condition
 </a>
 </em>
@@ -3284,7 +3435,20 @@ string
 <td>
 <p>The license for TigerGraph will be applied when the cluster:
 1. Is in the status InitializePost, if the cluster is being initialized for the first time.
-2. Is in the status ConfigUpdate, when the license is updated.</p>
+2. Is in the status ConfigUpdate, when the license is updated.
+This field requires a license string in plain text. If you worry about the security of the license,
+please use licenseSecretName instead.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>licenseSecretName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Set the licenseSecretName to use the license stored in a Secret.</p>
 </td>
 </tr>
 <tr>
@@ -3302,7 +3466,7 @@ string
 <td>
 <code>imagePullPolicy</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -3315,7 +3479,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>imagePullSecrets</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -3351,7 +3515,7 @@ string
 <td>
 <code>resources</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -3405,7 +3569,7 @@ AffinityConfiguration
 <td>
 <code>initContainers</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -3419,7 +3583,7 @@ AffinityConfiguration
 <td>
 <code>sidecarContainers</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -3433,7 +3597,7 @@ AffinityConfiguration
 <td>
 <code>customVolumes</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -3447,7 +3611,7 @@ AffinityConfiguration
 <td>
 <code>customVolumeMounts</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -3552,7 +3716,7 @@ Refer to <a href="../04-manage/pause-and-resume.md">Pause and Resume TigerGraph 
 <td>
 <code>securityContext</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#securitycontext-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#securitycontext-v1-core">
 Kubernetes core/v1.SecurityContext
 </a>
 </em>
@@ -3595,7 +3759,7 @@ Refer to <a href="../03-deploy/region-awareness-with-pod-topology-spread-constra
 <td>
 <code>topologySpreadConstraints</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#topologyspreadconstraint-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#topologyspreadconstraint-v1-core">
 []Kubernetes core/v1.TopologySpreadConstraint
 </a>
 </em>
@@ -3703,7 +3867,7 @@ string
 <td>
 <code>conditions</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#condition-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#condition-v1-meta">
 []Kubernetes meta/v1.Condition
 </a>
 </em>
@@ -3845,7 +4009,7 @@ RegionAware
 <td>
 <code>topologySpreadConstraints</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#topologyspreadconstraint-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#topologyspreadconstraint-v1-core">
 []Kubernetes core/v1.TopologySpreadConstraint
 </a>
 </em>
@@ -3940,7 +4104,7 @@ it can be set to persistent-claim or ephemeral</p>
 <td>
 <code>volumeClaimTemplate</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#persistentvolumeclaimspec-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#persistentvolumeclaimspec-v1-core">
 Kubernetes core/v1.PersistentVolumeClaimSpec
 </a>
 </em>

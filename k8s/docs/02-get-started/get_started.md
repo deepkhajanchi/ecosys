@@ -1,36 +1,37 @@
-<h1> Getting Started TigerGraph on Kubernetes </h1>
+# Getting Started TigerGraph on Kubernetes
 
-- [Step 1: Create a Test Kubernetes Cluster](#step-1-create-a-test-kubernetes-cluster)
-  - [Create a Kubernetes Cluster Using kind](#create-a-kubernetes-cluster-using-kind)
-  - [Install MetalLB to Enable Load Balancing Services](#install-metallb-to-enable-load-balancing-services)
-- [Step 2: Deploy TigerGraph Operator](#step-2-deploy-tigergraph-operator)
-  - [Install cert-manager for Kubernetes](#install-cert-manager-for-kubernetes)
-  - [Install kubectl-tg plugin](#install-kubectl-tg-plugin)
-  - [Install CRDs independently (Optional)](#install-crds-independently-optional)
-  - [Install TigerGraph Operator](#install-tigergraph-operator)
-- [Step 3: Deploy a TigerGraph Cluster](#step-3-deploy-a-tigergraph-cluster)
-  - [Providing a Private SSH Key Pair for Enhanced Security](#providing-a-private-ssh-key-pair-for-enhanced-security)
-  - [Specify the StorageClass Name](#specify-the-storageclass-name)
-  - [Specify the additional Storage for mounting multiple PVs(Optional)](#specify-the-additional-storage-for-mounting-multiple-pvsoptional)
-  - [Customize configurations for the TigerGraph system (Optional)](#customize-configurations-for-the-tigergraph-system-optional)
-  - [Create a TigerGraph Cluster with Specific Options](#create-a-tigergraph-cluster-with-specific-options)
-- [Step 4: Connect to a TigerGraph Cluster](#step-4-connect-to-a-tigergraph-cluster)
-  - [Connect to a TigerGraph Cluster Pod](#connect-to-a-tigergraph-cluster-pod)
-  - [Access TigerGraph Services](#access-tigergraph-services)
-    - [Access TigerGraph Services from inside the Kubernetes cluster](#access-tigergraph-services-from-inside-the-kubernetes-cluster)
-    - [Access TigerGraph Services from outside the Kubernetes cluster](#access-tigergraph-services-from-outside-the-kubernetes-cluster)
-- [Step 5: Operate a TigerGraph Cluster](#step-5-operate-a-tigergraph-cluster)
-  - [Update the Resources (CPU and Memory) of the TigerGraph Cluster](#update-the-resources-cpu-and-memory-of-the-tigergraph-cluster)
-  - [Update system configurations and license of the TigerGraph cluster](#update-system-configurations-and-license-of-the-tigergraph-cluster)
-  - [Scale a TigerGraph Cluster](#scale-a-tigergraph-cluster)
-    - [Change the HA factor of the TigerGraph cluster](#change-the-ha-factor-of-the-tigergraph-cluster)
-  - [Upgrade a TigerGraph Cluster](#upgrade-a-tigergraph-cluster)
-- [Step 6: Destroy the TigerGraph Cluster and the Kubernetes Operator](#step-6-destroy-the-tigergraph-cluster-and-the-kubernetes-operator)
-  - [Destroy the TigerGraph Cluster](#destroy-the-tigergraph-cluster)
-  - [Uninstall TigerGraph Operator](#uninstall-tigergraph-operator)
-  - [Uninstall CRD](#uninstall-crd)
-- [Step 7: Destroy the Kubernetes Cluster](#step-7-destroy-the-kubernetes-cluster)
-- [See also](#see-also)
+- [Getting Started TigerGraph on Kubernetes](#getting-started-tigergraph-on-kubernetes)
+  - [Step 1: Create a Test Kubernetes Cluster](#step-1-create-a-test-kubernetes-cluster)
+    - [Create a Kubernetes Cluster Using kind](#create-a-kubernetes-cluster-using-kind)
+    - [Install MetalLB to Enable Load Balancing Services](#install-metallb-to-enable-load-balancing-services)
+  - [Step 2: Deploy TigerGraph Operator](#step-2-deploy-tigergraph-operator)
+    - [Install cert-manager for Kubernetes](#install-cert-manager-for-kubernetes)
+    - [Install kubectl-tg plugin](#install-kubectl-tg-plugin)
+    - [Install CRDs independently (Optional)](#install-crds-independently-optional)
+    - [Install TigerGraph Operator](#install-tigergraph-operator)
+  - [Step 3: Deploy a TigerGraph Cluster](#step-3-deploy-a-tigergraph-cluster)
+    - [Providing a Private SSH Key Pair for Enhanced Security](#providing-a-private-ssh-key-pair-for-enhanced-security)
+    - [Specify the StorageClass Name](#specify-the-storageclass-name)
+    - [Specify the additional Storage for mounting multiple PVs(Optional)](#specify-the-additional-storage-for-mounting-multiple-pvsoptional)
+    - [Customize configurations for the TigerGraph system (Optional)](#customize-configurations-for-the-tigergraph-system-optional)
+    - [Create a TigerGraph Cluster with Specific Options](#create-a-tigergraph-cluster-with-specific-options)
+  - [Step 4: Connect to a TigerGraph Cluster](#step-4-connect-to-a-tigergraph-cluster)
+    - [Connect to a TigerGraph Cluster Pod](#connect-to-a-tigergraph-cluster-pod)
+    - [Access TigerGraph Services](#access-tigergraph-services)
+      - [Access TigerGraph Services from inside the Kubernetes cluster](#access-tigergraph-services-from-inside-the-kubernetes-cluster)
+      - [Access TigerGraph Services from outside the Kubernetes cluster](#access-tigergraph-services-from-outside-the-kubernetes-cluster)
+  - [Step 5: Operate a TigerGraph Cluster](#step-5-operate-a-tigergraph-cluster)
+    - [Update the Resources (CPU and Memory) of the TigerGraph Cluster](#update-the-resources-cpu-and-memory-of-the-tigergraph-cluster)
+    - [Update system configurations and license of the TigerGraph cluster](#update-system-configurations-and-license-of-the-tigergraph-cluster)
+    - [Scale a TigerGraph Cluster](#scale-a-tigergraph-cluster)
+      - [Change the HA factor of the TigerGraph cluster](#change-the-ha-factor-of-the-tigergraph-cluster)
+    - [Upgrade a TigerGraph Cluster](#upgrade-a-tigergraph-cluster)
+  - [Step 6: Destroy the TigerGraph Cluster and the Kubernetes Operator](#step-6-destroy-the-tigergraph-cluster-and-the-kubernetes-operator)
+    - [Destroy the TigerGraph Cluster](#destroy-the-tigergraph-cluster)
+    - [Uninstall TigerGraph Operator](#uninstall-tigergraph-operator)
+    - [Uninstall CRD](#uninstall-crd)
+  - [Step 7: Destroy the Kubernetes Cluster](#step-7-destroy-the-kubernetes-cluster)
+  - [See also](#see-also)
 
 This document provides a step-by-step guide on creating a simple Kubernetes cluster and using it to deploy a basic test TigerGraph cluster using TigerGraph Operator.
 
@@ -46,9 +47,9 @@ To deploy TigerGraph Operator and a TigerGraph cluster, follow these structured 
 
 For a visual demonstration of these steps, you can watch the following video:
 
-[Demo slides](https://docs.google.com/presentation/d/1aUpgHnJaz9qhlFqg6sPmLMrPMk2CR0ij4qqktbcZZQQ/edit?usp=sharing)
+[Demo slides](https://docs.google.com/presentation/d/1nTMj-rPwk6tAjUucnyIWWEOazq2Z7BA_aJz57LipkC8/edit?usp=sharing)
 
-[Demo video](https://drive.google.com/file/d/1-h70zlrGEYAQRadG_Pfq4HfmXkvEPt8s/view?usp=sharing)
+[Demo video](https://drive.google.com/file/d/1hQB0DErtbXAUKy8RU5DT6qcCRjWD8Ql7/view?usp=sharing)
 
 This comprehensive guide and accompanying resources will help you kickstart your journey with TigerGraph Operator, enabling you to harness the power of TigerGraph within your Kubernetes environment.
 
@@ -151,7 +152,7 @@ TigerGraph Operator leverages the Admission Webhooks feature and relies on [cert
 Admission webhooks are essential components in Kubernetes that receive admission requests and take actions based on them. They are registered with Kubernetes and are called upon to validate or modify a resource before it's stored.
 
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.13/cert-manager.yaml 
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.17/cert-manager.yaml 
 # Verify installation of cert-manager 
 kubectl wait deployment -n cert-manager cert-manager --for condition=Available=True --timeout=90s
 kubectl wait deployment -n cert-manager cert-manager-cainjector --for condition=Available=True --timeout=90s
@@ -172,7 +173,7 @@ Before installing the kubectl-tg plugin, make sure you meet the following requir
 > The kubectl-tg plugin is only verified on GNU/Linux systems.
 >
 > If you are using MacOS, you may encounter issues due to the differences between GNU and MacOS commands.
-> Please refer to the [troubleshooting document](../05-troubleshoot/kubectl-tg-plugin.md) for more information.
+> Please refer to the [troubleshooting document](../06-troubleshoot/kubectl-tg-plugin.md) for more information.
 >
 > If you are using Windows, please run the commands in a WSL environment.
 > Please refer to [Windows Subsystem for Linux Documentation](https://learn.microsoft.com/en-us/windows/wsl/) for more information.
@@ -376,7 +377,7 @@ You must also provide your license key with the `--license` command. Contact Tig
 - Create TigerGraph cluster with kubectl-tg plugin
 
   ```bash
-  kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 3 --ha 2 --version 3.9.1 --license ${LICENSE} \
+  kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 4 --ha 2 --version 4.2.1 --license ${LICENSE} \
   --storage-class standard --storage-size 10G --cpu 2000m --memory 6Gi --namespace ${YOUR_NAMESPACE}
   ```
 
@@ -387,6 +388,24 @@ You must also provide your license key with the `--license` command. Contact Tig
 
   kubectl wait --for=condition=complete --timeout=10m  job/${YOUR_CLUSTER_NAME}-init-job --namespace ${YOUR_NAMESPACE}
   ```
+> [!NOTE]
+> **Protect your license by using Secret**
+>
+> When you use option `--license` to set license, the license will be stored in the TigerGraph CR as plain text.
+> To protect your license, you can create a K8s Secret to store the license and use the `--license-secret` option to set the license.
+> For example:
+> ```bash
+> kubectl create secret generic ${YOUR_CLUSTER_NAME}-license --from-literal=license=${LICENSE} --namespace ${YOUR_NAMESPACE}
+> ```
+> Then, when creating the TigerGraph cluster, use the `--license-secret` option to set the license:
+> ```bash
+> kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 4 --ha 2 --version 4.2.1 \
+> --license-secret ${YOUR_CLUSTER_NAME}-license --storage-class standard --storage-size 10G --cpu 2000m --memory 6Gi --namespace ${YOUR_NAMESPACE}
+> ```
+
+> [!IMPORTANT] 
+> You can use only one of the `--license` and `--license-secret` options to set the license when creating the TigerGraph cluster.
+> If you set both options, the creation of CR will be rejected.
 
 ## Step 4: Connect to a TigerGraph Cluster
 
@@ -454,7 +473,7 @@ When using the headless service to access the TigerGraph service, you must log i
 #### Access TigerGraph Services from outside the Kubernetes cluster
 
 > [!IMPORTANT]
-> Please ensure that the external service is configured before proceeding with the following steps. You can configure the external service using the spec.listener field when creating or updating the TigerGraph cluster. Please refer to [External access service](../07-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md#external-access-service) for more details.
+> Please ensure that the external service is configured before proceeding with the following steps. You can configure the external service using the spec.listener field when creating or updating the TigerGraph cluster. Please refer to [External access service](../08-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md#external-access-service) for more details.
 
 Query the external service address:
 

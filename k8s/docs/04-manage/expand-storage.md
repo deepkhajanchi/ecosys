@@ -51,11 +51,12 @@ Before expanding storage of TigerGraph, there are some limitations you need to k
 2. You are only allowed to increase the storage size of TigerGraph cluster. You can't change the StorageClass or any other attributes of the PVCs.
 3. When TigerGraph Operator is expanding the storage of TigerGraph cluster, the Pods will be deleted and recreated, because some StorageClass does not support online volume expansion. That means at the time of expansion, the Pods will be unavailable. So you can't backup/restore or run gsql query during the expansion.
 4. It is possible that the CSI driver of the StorageClass you are using may have an error during the storage expansion process. However, TigerGraph Operator cannot detect this error, and the TigerGraph CR will be stuck in the `StorageExpanding, Unknown` status. Please refer to [Troubleshooting](#troubleshooting) for more information.
+5. Since Operator 1.6.0, we support adding more additionalStorages after creating cluster by adding items in `.spec.storage.additionalStorages` in TigerGraph CR.
 
 > [!IMPORTANT]
 > It is highly recommended to backup the cluster before expanding the storage of TigerGraph cluster.
 > In case of any failure during the expansion process, you can restore the cluster from the backup.
-> Please refer to [Backup and Restore](../backup-restore/README.md) for how to backup the cluster.
+> Please refer to [Backup and Restore](./backup-and-restore/README.md) for how to backup the cluster.
 
 ### Expand storage by modifying TigerGraph CR
 
@@ -172,7 +173,7 @@ The output is like:
 
 ```bash
 NAME              REPLICAS   CLUSTER-SIZE   CLUSTER-HA   CLUSTER-VERSION                              SERVICE-TYPE   REGION-AWARENESS   CONDITION-TYPE      CONDITION-STATUS   AGE
-example-cluster   3          3              1            docker.io/tigergraph/tigergraph-k8s:3.10.1   LoadBalancer                      StorageExpandCheck  False              6h41m
+example-cluster   3          3              1            docker.io/tginternal/tigergraph-k8s:3.10.1   LoadBalancer                      StorageExpandCheck  False              6h41m
 ```
 
 ### TigerGraph CR is in status `StorageExpandCheck, False`
@@ -205,6 +206,6 @@ There are many possible errors that may occur during the storage expansion proce
 
 As mentioned before, K8s does not allow to shrink the storage of PVCs. So we do not support shrinking the storage of TigerGraph cluster either. If you really want to shrink the storage of TigerGraph cluster, we have such a workaround:
 
-1. Backup the TigerGraph cluster to S3 bucket. Please refer to [Backup and Restore](../backup-restore/README.md) for how to backup the cluster.
+1. Backup the TigerGraph cluster to S3/GCS bucket or ABS Container. Please refer to [Backup and Restore](../backup-restore/README.md) for how to backup the cluster.
 2. Delete the TigerGraph CR and clear the PVCs of the TigerGraph cluster.
 3. Create a new TigerGraph CR with the smaller storage size and restore the cluster from the backup.

@@ -84,6 +84,18 @@ and the HA factor can be configured by changing `spec.ha`.
 
 The TigerGraph cluster license is required for TigerGraph deployment, and it can be configured by changing `spec.license` in the TigerGraph CR.
 
+The `spec.license` field stores the license as plain text. To protect the license, you can create a K8s Secret to store the license. Example:
+
+```bash
+kubectl create secret generic ${YOUR_CLUSTER_NAME}-license --from-literal=license=${LICENSE} --namespace ${YOUR_NAMESPACE}
+```
+
+And you can specify the secret in field `spec.licenseSecretName` in the `TigerGraph` CR.
+
+> [!IMPORTANT]
+> You can only use one of `spec.license` and `spec.licenseSecretName` to configure the license.
+> If you set both of them, the creation or update of the CR will be rejected.
+
 ### Service account name of TigerGraph pod(Optional)
 
 A service account name of TigerGraph pod is required to acquire permission for some special K8s distribution, such as OpenShift.

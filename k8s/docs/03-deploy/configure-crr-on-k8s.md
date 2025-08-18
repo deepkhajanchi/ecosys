@@ -55,7 +55,7 @@ As you expose the Kafka brokers to the external network, you may consider the se
 
 ### Create a Primary Cluster without External Kafka Listeners
 
-When you just want to set up DR clusters that are in the **same Kubernetes cluster** as the primary cluster, you don't need to configure External Kafka Listeners. Just follow the [Get Started](../01-get-started/get_started.md) guide to create a cluster.
+When you just want to set up DR clusters that are in the **same Kubernetes cluster** as the primary cluster, you don't need to configure External Kafka Listeners. Just follow the [Get Started](../02-get-started/get_started.md) guide to create a cluster.
 
 Here is a simple CR to create a primary cluster without External Kafka Listeners:
 
@@ -192,7 +192,7 @@ As mentioned in the previous section, configuring Ingress is more complex than L
 
 Here we take Nginx Ingress Controller as an example. You can also use other Ingress Controllers, but you should make sure that they support SSL Passthrough. About the details of SSL Passthrough, you can refer to the document of [Nginx Ingress Controller](https://kubernetes.github.io/ingress-nginx/user-guide/tls/#ssl-passthrough).
 
-We have prepared a YAML file to install Nginx Ingress Controller and enable SSL Passthrough in our sample directory. You can find it here [nginx-ingress-controller.yaml](../09-samples/deploy/nginx-ingress-controller.yaml). Please download this file and run the following command to install Nginx Ingress Controller:
+We have prepared a YAML file to install Nginx Ingress Controller and enable SSL Passthrough in our sample directory. You can find it here [nginx-ingress-controller.yaml](../10-samples/deploy/nginx-ingress-controller.yaml). Please download this file and run the following command to install Nginx Ingress Controller:
 
 ```bash
 kubectl apply -f nginx-ingress-controller.yaml
@@ -683,7 +683,7 @@ If no error occurs, the DR cluster will be synchronized with the primary cluster
 You may want to update the Kafka Config of a cluster in the following scenarios:
 
 1. Add Kafka external listeners to the cluster that doesn't have external listeners.
-   
+
 2. Change the type of Kafka external listeners.
 
 3. Enable SSL or client authentication for Kafka brokers.
@@ -706,4 +706,4 @@ Then a config-update job will be created to update the configurations of Kafka b
 
 Please watch the following video to see how to set up DR clusters that are in different Kubernetes clusters:
 
-[How to set up CRR on K8s](https://drive.google.com/file/d/1UOFvNuEVNipCfQlhPp70BnhmRD3asMzV/view?usp=sharing)
+[How to set up CRR on K8s](https://drive.google.com/file/d/1-YKVk4dFiOHFYKTBr8dxN0Nbe49LGSF5/view?usp=sharing)

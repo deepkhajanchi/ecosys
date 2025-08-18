@@ -6,14 +6,15 @@ If you have experience with Custom Resources in Kubernetes (K8S), you can levera
 > If you are using kubectl-tg plugin to backup and restore, we highly recommend you to avoid modifying the backup configurations by directly excuting `gadmin config` in the pod.
 > If you do that, the configurations set by CR and gadmin config may conflict, leading to some unknown behavior.
 
-
 - [Backup \& Restore cluster kubectl-tg plugin](#backup--restore-cluster-kubectl-tg-plugin)
   - [Prerequisite](#prerequisite)
   - [Utilizing `kubectl tg` Command for Backup](#utilizing-kubectl-tg-command-for-backup)
     - [Creating and Updating Backups](#creating-and-updating-backups)
       - [Backup to Local Storage](#backup-to-local-storage)
-      - [Backup to an S3 Bucket](#backup-to-an-s3-bucket)
-      - [Backup to an S3 Bucket with RoleARN instead of access key](#backup-to-an-s3-bucket-with-rolearn-instead-of-access-key)
+      - [Backup to a S3 Bucket](#backup-to-a-s3-bucket)
+      - [Backup to a S3 Bucket with RoleARN instead of access key](#backup-to-a-s3-bucket-with-rolearn-instead-of-access-key)
+      - [Backup to a GCS Bucket](#backup-to-a-gcs-bucket)
+      - [Backup to an ABS Container](#backup-to-an-abs-container)
       - [Configure Backup Clean Policy](#configure-backup-clean-policy)
       - [Control the retry behavior of backup CR](#control-the-retry-behavior-of-backup-cr)
       - [\[Preview\] Performing Incremental Backup](#preview-performing-incremental-backup)
@@ -29,8 +30,10 @@ If you have experience with Custom Resources in Kubernetes (K8S), you can levera
     - [Specifying Backup Schedule](#specifying-backup-schedule)
     - [Creating Backup Schedules](#creating-backup-schedules)
       - [Creating a Local Backup Schedule](#creating-a-local-backup-schedule)
-      - [Creating an S3 Backup Schedule](#creating-an-s3-backup-schedule)
-      - [Creating an S3 Backup Schedule with RoleARN instead of access key](#creating-an-s3-backup-schedule-with-rolearn-instead-of-access-key)
+      - [Creating a S3 Backup Schedule](#creating-a-s3-backup-schedule)
+      - [Creating a S3 Backup Schedule with RoleARN instead of access key](#creating-a-s3-backup-schedule-with-rolearn-instead-of-access-key)
+      - [Creating a GCS Backup Schedule](#creating-a-gcs-backup-schedule)
+      - [Creating an ABS Backup Schedule](#creating-an-abs-backup-schedule)
       - [Control the retry behavior of backup CR created by backup schedule](#control-the-retry-behavior-of-backup-cr-created-by-backup-schedule)
     - [Updating a Backup Schedule](#updating-a-backup-schedule)
     - [Listing All Backup Schedules](#listing-all-backup-schedules)
@@ -41,6 +44,11 @@ If you have experience with Custom Resources in Kubernetes (K8S), you can levera
     - [Backup Strategy Overview](#backup-strategy-overview)
   - [Utilizing `kubectl tg` for Restore](#utilizing-kubectl-tg-for-restore)
     - [Restore within the Same Cluster](#restore-within-the-same-cluster)
+      - [Using backup in local storage](#using-backup-in-local-storage)
+      - [Use backup in s3 bucket](#use-backup-in-s3-bucket)
+      - [Use backup in s3 bucket with RoleARN (Supported from operator 1.2.0 and TigerGraph 4.1.0)](#use-backup-in-s3-bucket-with-rolearn-supported-from-operator-120-and-tigergraph-410)
+      - [Use backup in GCS bucket (Supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1)](#use-backup-in-gcs-bucket-supported-from-tigergraph-operator-160-and-tigergraph-421)
+      - [Use backup in ABS container (Supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1)](#use-backup-in-abs-container-supported-from-tigergraph-operator-160-and-tigergraph-421)
     - [Cross-Cluster Restore from Backup](#cross-cluster-restore-from-backup)
     - [Clone Cluster from Backup](#clone-cluster-from-backup)
     - [Cross-Cluster Restore and Cluster Clone (Cluster Version \< 3.9.2)](#cross-cluster-restore-and-cluster-clone-cluster-version--392)
@@ -110,7 +118,7 @@ use the following command to backup cluster whose name is test-cluster and store
 ```bash
  kubectl tg backup create --name backup-to-local \
    --cluster-name test-cluster --tag testlocal -n tigergraph \
-  --destination local --local-path /home/tigergraph/tigergraph/data/mybackup 
+  --destination local --local-path /home/tigergraph/mybackup 
 ```
 
 you can also customize timeout, staging path, the compress level and the compress process number
@@ -118,22 +126,28 @@ you can also customize timeout, staging path, the compress level and the compres
 ```bash
  kubectl tg backup create --name backup-to-local --cluster-name test-cluster \
   --tag testlocal -n tigergraph --destination local \
-  --local-path /home/tigergraph/tigergraph/data/mybackup  --staging-path /home/tigergraph/temp \
+  --local-path /home/tigergraph/mybackup  --staging-path /home/tigergraph/temp \
   --timeout 18000 --compress-process-number 0 --compress-level BestSpeed
 ```
 
-> [!NOTE]
-> Please use subpath of `/home/tigergraph/tigergraph/data/` as local path for backup since this path is mounted with PV. For example, you can use `/home/tigergraph/tigergraph/data/mybackup` .If you do not use that, you will lose your backup data if the pod restarts.
+> [!IMPORTANT]
+> Please don't use subpath of DataRoot or AppRoot as the local path for backup. These paths are forbidden because they may be cleaned up when uninstalling TigerGraph.
+> The best practice is to configure an additionalStorage for backup. For example, you can create following yaml file and name it as `tg-backup-storage.yaml`:
+> ```yaml
+> additionalStorages:
+>   - name: tg-backup
+>     storageSize: 100Gi
+>     mountPath: /home/tigergraph/mybackup
+> ```
+> And create/update the cluster with option `--additional-storage tg-backup-storage.yaml`.
+> Then you can use `/home/tigergraph/mybackup` as the local path for backup.
 >
-> And be careful that don’t use the same path for local path as the staging path. If you don’t configure staging path, the default staging path is `/home/tigergraph/tigergraph/data/backup`(version < 3.10.0) or `/home/tigergraph/tigergraph/data/backup_staging_dir/backup` (version >= 3.10.0),
-> if you set local path as `/home/tigergraph/tigergraph/data/backup` for TigerGraph < 3.10.0 or `/home/tigergraph/tigergraph/data/backup_staging_dir/backup` for TigerGraph >= 3.10.0, the backup will fail.
->
-> If you configure staging path by `--staging-path`, the actual staging path will be `${stage_path}/backup`. For example, if you set `--staging-path /home/tigergraph/temp`, the actual staging path will be `/home/tigergraph/temp/backup`. And you should not use `/home/tigergraph/temp/backup` as local path.
+> If you configure staging path by `--staging-path`, the actual staging path will be `${staging_path}/backup`. For example, if you set `--staging-path /home/tigergraph/temp`, the actual staging path will be `/home/tigergraph/temp/backup`. And you should not use `/home/tigergraph/temp/backup` as local path.
 
 > [!IMPORTANT]
 > Please remember which local path you use and use the same path if you want to restore the backup package you create.
 
-#### Backup to an S3 Bucket
+#### Backup to a S3 Bucket
 
 Follow the steps below to back up a cluster named "test-cluster" and store the backup files in an S3 bucket. Make sure you provide the S3 bucket name, access key ID, and secret key for S3.
 
@@ -168,7 +182,7 @@ kubectl tg backup create --name backup-to-s3  -n tigergraph \
 > [!NOTE]
 > Ensure that you have created the necessary Kubernetes secret containing the access key ID and secret key before initiating the backup process to the S3 bucket.
 
-#### Backup to an S3 Bucket with RoleARN instead of access key
+#### Backup to a S3 Bucket with RoleARN instead of access key
 
 > [!IMPORTANT]
 > This feature is supported from TigerGraph v1.2.0 and TigerGraph v4.1.0
@@ -183,6 +197,80 @@ kubectl tg backup create --name backup-to-s3  -n tigergraph \
   --s3-bucket tgbackup \
   --role-arn arn:aws:iam::1234567:role/yourBackupRole
 ```
+
+#### Backup to a GCS Bucket
+
+Follow the steps below to back up a cluster named "test-cluster" and store the backup files in an GCS bucket. Make sure you provide the GCS bucket name, access key ID, and secret key for GCS.
+
+1. First, create a Kubernetes secret containing the access key ID and secret key in the same namespace as the cluster:
+
+   ```bash
+   kubectl create secret generic gcs-secret --namespace tigergraph \
+       --from-literal=accessKeyID=GCSACCESSKEY \
+       --from-literal=secretAccessKey='GCSSECRETKEY' 
+   ```
+
+2. Next, create a backup to the GCS bucket:
+
+   ```bash
+   kubectl tg backup create --name backup-to-gcs -n tigergraph \
+     --cluster-name test-cluster --destination gcsBucket --tag testGCS \
+     --gcs-bucket tgbackup  \
+     --gcs-secret gcs-secret
+   ```
+
+You can also customize the following parameters: timeout, staging path, and the number of compression processes:
+
+```bash
+kubectl tg backup create --name backup-to-gcs  -n tigergraph \
+  --cluster-name test-cluster --tag testGCS --destination gcsBucket \
+  --gcs-bucket tgbackup \
+  --gcs-secret gcs-secret \
+  --staging-path /home/tigergraph/temp \
+  --timeout 18000 --compress-process-number 0 --compress-level BestSpeed
+```
+
+> [!NOTE]
+> Ensure that you have created the necessary Kubernetes secret containing the access key ID and secret key before initiating the backup process to the GCS bucket.
+> This feature is supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1
+
+
+#### Backup to an ABS Container
+
+Follow the steps below to back up a cluster named "test-cluster" and store the backup files in an ABS container. Make sure you provide the ABS container name, access key ID, and secret key for ABS.
+
+1. First, create a Kubernetes secret containing the access key ID and secret key in the same namespace as the cluster:
+
+   ```bash
+   kubectl create secret generic abs-secret --namespace tigergraph \
+       --from-literal=accessKeyID=ABSACCESSKEY \
+       --from-literal=secretAccessKey='ABSSECRETKEY' 
+   ```
+
+2. Next, create a backup to the ABS container:
+
+   ```bash
+   kubectl tg backup create --name backup-to-abs -n tigergraph \
+     --cluster-name test-cluster --destination absContainer --tag testABS \
+     --abs-container tgbackup  \
+     --abs-secret abs-secret
+   ```
+
+You can also customize the following parameters: timeout, staging path, and the number of compression processes:
+
+```bash
+kubectl tg backup create --name backup-to-abs  -n tigergraph \
+  --cluster-name test-cluster --tag testABS --destination absContainer \
+  --abs-container tgbackup \
+  --abs-secret abs-secret \
+  --staging-path /home/tigergraph/temp \
+  --timeout 18000 --compress-process-number 0 --compress-level BestSpeed
+```
+
+> [!NOTE]
+> Ensure that you have created the necessary Kubernetes secret containing the access key ID and secret key before initiating the backup process to the ABS container.
+> This feature is supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1
+
 
 #### Configure Backup Clean Policy
 
@@ -239,7 +327,7 @@ To initiate an incremental backup, incorporate the `--incremental` option into t
 kubectl tg backup create --cluster-name test-cluster -n tigergraph --name incremental-backup \
   --incremental --tag testlocal \
   --destination local \
-  --local-path /home/tigergraph/tigergraph/data/mybackup
+  --local-path /home/tigergraph/mybackup
 ```
 
 #### Updating Backup Custom Resources
@@ -542,7 +630,7 @@ Please ensure to enclose the cron expression in single quotation marks (`'`) to 
      --destination local --local-path /home/tigergraph/backup
    ```
 
-#### Creating an S3 Backup Schedule
+#### Creating a S3 Backup Schedule
 
    For a schedule that conducts hourly backups for the "test-cluster" at minute 0, storing backup files in an S3 bucket, proceed as follows:
 
@@ -579,7 +667,7 @@ kubectl tg backup-schedule create --cluster-name test-cluster -n tigergraph \
  --destination local --local-path /home/tigergraph/backup
 ```
 -->
-#### Creating an S3 Backup Schedule with RoleARN instead of access key
+#### Creating a S3 Backup Schedule with RoleARN instead of access key
 
 > [!IMPORTANT]
 > This feature is supported from TigerGraph Operator 1.2.0 and TigerGraph 4.1.0
@@ -595,6 +683,60 @@ kubectl tg backup-schedule create --name backupsch-s3 \
  --s3-bucket tgbackup \
  --role-arn arn:aws:iam::1234567:role/yourBackupRole
 ```
+
+#### Creating a GCS Backup Schedule
+
+> [!IMPORTANT]
+> This feature is supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1
+
+   For a schedule that conducts hourly backups for the "test-cluster" at minute 0, storing backup files in an GCS bucket, proceed as follows:
+
+   First, create a secret containing access key id and secret key in the same namespace as the cluster:
+
+   ```bash
+   kubectl create secret generic gcs-secret --namespace tigergraph \
+       --from-literal=accessKeyID=GCSACCESSKEY \
+       --from-literal=secretAccessKey='GCSSECRETKEY' 
+   ```
+
+   Next, establish the backup schedule:
+
+   ```bash
+   kubectl tg backup-schedule create --name backupsch-gcs \ 
+     --cluster-name test-cluster -n tigergraph \
+     --tag gcsdaily --schedule '0 * * * *' --destination gcsBucket\
+     --gcs-bucket tgbackup \
+     --gcs-secret gcs-secret
+   ```
+
+By executing these commands, you'll set up automatic backup schedules tailored to your requirements.
+
+#### Creating an ABS Backup Schedule
+
+> [!IMPORTANT]
+> This feature is supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1
+
+   For a schedule that conducts hourly backups for the "test-cluster" at minute 0, storing backup files in an ABS container, proceed as follows:
+
+   First, create a secret containing access key id and secret key in the same namespace as the cluster:
+
+   ```bash
+   kubectl create secret generic abs-secret --namespace tigergraph \
+       --from-literal=accessKeyID=ABSACCESSKEY \
+       --from-literal=secretAccessKey='ABSSECRETKEY' 
+   ```
+
+   Next, establish the backup schedule:
+
+   ```bash
+   kubectl tg backup-schedule create --name backupsch-abs \ 
+     --cluster-name test-cluster -n tigergraph \
+     --tag absdaily --schedule '0 * * * *' --destination absContainer \
+     --abs-container tgbackup \
+     --abs-secret abs-secret
+   ```
+
+By executing these commands, you'll set up automatic backup schedules tailored to your requirements.
 
 #### Control the retry behavior of backup CR created by backup schedule
 
@@ -840,7 +982,8 @@ The output will provide information of backup package in status:
    Target Ready:            true
 ```
 
-Using backup in local storage:
+#### Using backup in local storage
+
 To restore your cluster utilizing a backup stored in local storage, execute the following command:
 
 ```bash
@@ -851,7 +994,7 @@ kubectl tg restore --name restore-from-local \
 
 Replace  `/home/tigergraph/backup` with the appropriate path to the backup stored in your local storage. This command will initiate the restore process and bring your cluster back to the state captured by the specified backup.
 
-Use backup in s3 bucket:
+#### Use backup in s3 bucket
 
 First, create a secret containing access key id and secret key in the same namespace as the cluster you want to restore:
 
@@ -873,7 +1016,7 @@ kubectl tg restore --name restore-from-s3 \
 
 Make sure to replace tests3-2022-10-31T031005 with the desired backup tag and adjust tg-backup to your S3 bucket name. This command will trigger the restore process, bringing your cluster back to the chosen backup's state.
 
-Use backup in s3 bucket with RoleARN (Supported from operator 1.2.0 and TigerGraph 4.1.0):
+#### Use backup in s3 bucket with RoleARN (Supported from operator 1.2.0 and TigerGraph 4.1.0)
 
 > [!IMPORTANT]
 > If you want to use RoleARN instead of access key to restore from S3 bucket, you don't have to create a K8s Secret for the backup CR. Instead, you have to make sure that the aws-cli in your TigerGraph cluster can access the S3 bucket with the RoleARN. Please refer to [Create a TigerGraph cluster with access to S3 bucket](./create-tg-with-access-to-s3.md).
@@ -885,6 +1028,50 @@ kubectl tg restore --name restore-from-s3 \
   --source s3Bucket --s3-bucket tg-backup \
   --role-arn arn:aws:iam::1234567:role/yourBackupRole
 ```
+
+#### Use backup in GCS bucket (Supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1)
+
+First, create a secret containing access key id and secret key in the same namespace as the cluster you want to restore:
+
+```bash
+kubectl create secret generic gcs-secret --namespace tigergraph \
+    --from-literal=accessKeyID=GCSACCESSKEY \
+    --from-literal=secretAccessKey='GCSSECRETKEY' 
+```
+
+Select a backup tag from the available backups and execute the following command to initiate restore from an GCS bucket:
+
+```bash
+kubectl tg restore --name restore-from-gcs \
+  --namespace tigergraph --cluster-name test-cluster \
+  --tag testgcs-2025-03-31T021006 \
+  --source gcsBucket --gcs-bucket tg-backup \
+  --gcs-secret gcs-secret
+```
+
+Make sure to replace testgcs-2025-03-31T021006 with the desired backup tag and adjust tg-backup to your gcs bucket name. This command will trigger the restore process, bringing your cluster back to the chosen backup's state.
+
+#### Use backup in ABS container (Supported from TigerGraph Operator 1.6.0 and TigerGraph 4.2.1)
+
+First, create a secret containing access key id and secret key in the same namespace as the cluster you want to restore:
+
+```bash
+kubectl create secret generic abs-secret --namespace tigergraph \
+    --from-literal=accessKeyID=ABSACCESSKEY \
+    --from-literal=secretAccessKey='ABSSECRETKEY' 
+```
+
+Select a backup tag from the available backups and execute the following command to initiate restore from an ABS container:
+
+```bash
+kubectl tg restore --name restore-from-abs \
+  --namespace tigergraph --cluster-name test-cluster \
+  --tag testabs-2025-04-22T091106 \
+  --source absContainer --abs-bucket tg-backup \
+  --abs-secret abs-secret
+```
+
+Make sure to replace testabs-2025-04-22T091106 with the desired backup tag and adjust tg-backup to your ABS container name. This command will trigger the restore process, bringing your cluster back to the chosen backup's state.
 
 ### Cross-Cluster Restore from Backup
 
