@@ -62,7 +62,7 @@ conditions:
     type: Normal
 ha: 2
 hashBucketInBit: 5
-image: docker.io/tigergraph/tigergraph-k8s:3.10.0
+image: docker.io/tigergraph/tigergraph-k8s:4.2.1
 licenseHash: a9bfdffca9fa31dabba770e15be83de7
 listener:
   type: LoadBalancer

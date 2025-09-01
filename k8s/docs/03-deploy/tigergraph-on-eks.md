@@ -97,7 +97,7 @@ The `kubectl-tg` plugin allows you to deploy and manage the Operator and TigerGr
 > If you are using Windows, please run the commands in a WSL environment.
 > Please refer to [Windows Subsystem for Linux Documentation](https://learn.microsoft.com/en-us/windows/wsl/) for more information.
 
-Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 0.0.9:
+Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 1.6.0:
 
 ```bash
 wget https://dl.tigergraph.com/k8s/latest/kubectl-tg -O kubectl-tg
@@ -658,10 +658,10 @@ Upgrading a TigerGraph cluster is supported from a lower version to a higher ver
 > [!WARNING]
 > Operator 0.0.9 has disabled TG downgrades from a higher version (e.g., 3.9.3) to any lower version (e.g., 3.9.2). Therefore, the upgrade job will fail if you attempt to downgrade.
 
-You can upgrade a TigerGraph cluster from a lower version to a higher version. Assuming the current version is 3.9.2 and you want to upgrade to 3.9.3, use the following command:
+You can upgrade a TigerGraph cluster from a lower version to a higher version. Assuming the current version is 4.1.3 and you want to upgrade to 4.2.1, use the following command:
 
 ```bash
-kubectl tg update --cluster-name ${YOUR_CLUSTER_NAME} --version 3.9.3  --namespace ${YOUR_NAMESPACE}
+kubectl tg update --cluster-name ${YOUR_CLUSTER_NAME} --version 4.2.1  --namespace ${YOUR_NAMESPACE}
 ```
 
 If you prefer to upgrade the cluster using a CR (Custom Resource) YAML manifest, simply update the `spec.image` field, and then apply it.

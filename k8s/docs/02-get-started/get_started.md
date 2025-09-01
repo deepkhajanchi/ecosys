@@ -178,7 +178,7 @@ Before installing the kubectl-tg plugin, make sure you meet the following requir
 > If you are using Windows, please run the commands in a WSL environment.
 > Please refer to [Windows Subsystem for Linux Documentation](https://learn.microsoft.com/en-us/windows/wsl/) for more information.
 
-Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 0.0.9:
+Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 1.6.0:
 
 ```bash
 wget https://dl.tigergraph.com/k8s/latest/kubectl-tg -O kubectl-tg
@@ -567,10 +567,10 @@ kubectl tg update --cluster-name ${YOUR_CLUSTER_NAME} --ha ${NEW_HA} --namespace
 
 Upgrading a TigerGraph cluster is supported from a lower version to a higher version.
 
-Assuming the current version of the cluster is 3.9.1, you can upgrade it to version 3.9.2 with the following command:
+Assuming the current version of the cluster is 4.1.3, you can upgrade it to version 4.2.1 with the following command:
 
 ```bash
-kubectl tg update --cluster-name ${YOUR_CLUSTER_NAME} --version 3.9.2  --namespace ${YOUR_NAMESPACE}
+kubectl tg update --cluster-name ${YOUR_CLUSTER_NAME} --version 4.2.1  --namespace ${YOUR_NAMESPACE}
 ```
 
 To ensure the successful upgrade of the TigerGraph cluster, use these commands:

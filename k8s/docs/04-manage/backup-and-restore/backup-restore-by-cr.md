@@ -1069,7 +1069,7 @@ spec:
     stagingPath: /home/tigergraph/data
   clusterTemplate:
     replicas: 3
-    image: docker.io/tigergraph/tigergraph-k8s:3.9.3
+    image: docker.io/tigergraph/tigergraph-k8s:4.2.1
     imagePullPolicy: IfNotPresent
     listener:
       type: LoadBalancer
@@ -1107,7 +1107,7 @@ spec:
     stagingPath: /home/tigergraph/data
   clusterTemplate:
     replicas: 3
-    image: docker.io/tigergraph/tigergraph-k8s:3.9.3
+    image: docker.io/tigergraph/tigergraph-k8s:4.2.1
     imagePullPolicy: IfNotPresent
     listener:
       type: LoadBalancer

@@ -222,7 +222,7 @@ If you want to use the TigerGraph CR YAML file to deploy the cluster, you need t
 > Cluster name, size, ha, and storage configuration must be the same.
 
   ```bash
-  kubectl tg create --namespace tigergraph --cluster-name test-cluster --version 3.9.3 --license ${YOUR_LICENSE} \
+  kubectl tg create --namespace tigergraph --cluster-name test-cluster --version 4.1.3 --license ${YOUR_LICENSE} \
   -k ssh-key-secret --size 4 --ha 2  --storage-class standard --storage-size 100G --cpu 6000m --memory 12Gi
   ```
 
@@ -232,13 +232,13 @@ If you want to use the TigerGraph CR YAML file to deploy the cluster, you need t
   kubectl get tg test-cluster -n tigergraph
 
   NAME           REPLICAS   CLUSTER-SIZE   CLUSTER-HA   CLUSTER-VERSION                                             SERVICE-TYPE   REGION-AWARENESS   CONDITION-TYPE   CONDITION-STATUS   AGE
-  test-cluster   3          3              2            docker.io/tigergraph/tigergraph-k8s:3.9.3                   LoadBalancer                      Normal           True               15m
+  test-cluster   3          3              2            docker.io/tigergraph/tigergraph-k8s:4.1.3                   LoadBalancer                      Normal           True               15m
   ```
 
-  Then, you can upgrade the TigerGraph cluster to a new version, here we upgrade the cluster version to 4.1.0
+  Then, you can upgrade the TigerGraph cluster to a new version, here we upgrade the cluster version to 4.2.1
 
   ```bash
-  kubectl tg update  --cluster-name test-cluster --version 4.1.0 --namespace tigergraph
+  kubectl tg update  --cluster-name test-cluster --version 4.2.1 --namespace tigergraph
   ```
 
 ## How to upgrade for optional change
@@ -256,7 +256,7 @@ In order to optimize the user experience of the TigerGraph Operator, such as imp
 - The new TigerGraph cluster CRD is applicable starting from TigerGraph 3.9.2. In TigerGraph clusters before 3.9.2, after the CRD is updated, the image must be upgraded to 3.9.2 or above.
 
   ```bash
-    kubectl tg update --cluster-name ${cluster_name} --version 4.1.0 -n ${NAMESPACE_OF_YOUR_CLUSTER}
+    kubectl tg update --cluster-name ${cluster_name} --version 4.2.1 -n ${NAMESPACE_OF_YOUR_CLUSTER}
   ```
 
 - If using the new TigerGraph cluster CRD (1.0.0 and above) with an older version of the TigerGraph image, the NGINX service cannot serve correctly on the Tools, RESTPP, and Informant services.
@@ -326,10 +326,10 @@ Best practice for upgrading TigerGraph <=3.9.3 with a single PVC and TigerGraph 
 
   [Backup & Restore cluster kubectl-tg plugin](../04-manage/backup-and-restore/backup-restore-by-kubectl-tg.md)
 
-- After completing the restore process, upgrade the TigerGraph cluster to version 4.1.0 using the appropriate command.
+- After completing the restore process, upgrade the TigerGraph cluster to version 4.2.1 using the appropriate command.
   
   ```bash
-  kubectl tg update --cluster-name $YOUR_CLUSTER_NAME --version 4.1.0 --namespace $YOUR_NAMESPACE
+  kubectl tg update --cluster-name $YOUR_CLUSTER_NAME --version 4.2.1 --namespace $YOUR_NAMESPACE
   ```
 
 ## Troubleshooting
