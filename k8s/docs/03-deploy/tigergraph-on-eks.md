@@ -84,7 +84,7 @@ kubectl wait deployment -n cert-manager cert-manager-webhook --for condition=Ava
 
 The `kubectl-tg` plugin allows you to deploy and manage the Operator and TigerGraph clusters imperatively. Before installing the plugin, ensure the following requirements are met:
 
-- [helm](https://helm.sh/docs/helm/helm_install/) with a version equal to or greater than 3.7.0.
+- [helm](https://helm.sh/docs/intro/install/) with a version equal to or greater than 3.7.0.
 - [jq](https://jqlang.github.io/jq/download/) with a version equal to or greater than 1.6.
 - [yq](https://github.com/mikefarah/yq) with a version equal to or greater than 4.18.1.
 

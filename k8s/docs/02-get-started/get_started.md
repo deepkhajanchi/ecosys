@@ -165,7 +165,7 @@ The kubectl-tg plugin simplifies the deployment and management of both Operator 
 
 Before installing the kubectl-tg plugin, make sure you meet the following requirements:
 
-- [helm](https://helm.sh/docs/helm/helm_install/): version >= 3.7.0
+- [helm](https://helm.sh/docs/intro/install/): version >= 3.7.0
 - [jq](https://jqlang.github.io/jq/download/): version >= 1.6
 - [yq](https://github.com/mikefarah/yq): version >= 4.18.1
 
