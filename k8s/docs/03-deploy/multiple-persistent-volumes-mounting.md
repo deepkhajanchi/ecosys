@@ -145,7 +145,7 @@ metadata:
   namespace: tigergraph
 spec:
   ha: 2
-  image: docker.io/tigergraph/tigergraph-k8s:3.9.3
+  image: docker.io/tigergraph/tigergraph-k8s:4.2.1
   imagePullPolicy: IfNotPresent
   imagePullSecrets:
   - name: tigergraph-image-pull-secret
@@ -320,7 +320,7 @@ metadata:
   namespace: tigergraph
 spec:
   ha: 1
-  image: docker.io/tigergraph/tigergraph-k8s:3.9.3
+  image: docker.io/tigergraph/tigergraph-k8s:4.2.1
   imagePullPolicy: IfNotPresent
   imagePullSecrets:
   - name: tigergraph-image-pull-secret
@@ -424,7 +424,7 @@ metadata:
   namespace: tigergraph
 spec:
   ha: 1
-  image: docker.io/tigergraph/tigergraph-k8s:3.9.3
+  image: docker.io/tigergraph/tigergraph-k8s:4.2.1
   imagePullPolicy: IfNotPresent
   imagePullSecrets:
   - name: tigergraph-image-pull-secret
@@ -487,4 +487,4 @@ customVolumeMounts:
 
 If you are interested in creating static and dynamic persistent volume storage, refer to the following document:
 
-- [How to use static & dynamic persistent volume storage](../07-reference/static-and-dynamic-persistent-volume-storage.md)
+- [How to use static & dynamic persistent volume storage](../08-reference/static-and-dynamic-persistent-volume-storage.md)

@@ -73,7 +73,7 @@ Follow these commands to install cert-manager:
 > Please check whether cert-manager has been installed before execute the following command.
 
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.13/cert-manager.yaml 
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.17/cert-manager.yaml 
 # Verify installation of cert-manager 
 kubectl wait deployment -n cert-manager cert-manager --for condition=Available=True --timeout=90s
 kubectl wait deployment -n cert-manager cert-manager-cainjector --for condition=Available=True --timeout=90s
@@ -84,7 +84,7 @@ kubectl wait deployment -n cert-manager cert-manager-webhook --for condition=Ava
 
 The `kubectl-tg` plugin allows you to deploy and manage the Operator and TigerGraph clusters imperatively. Before installing the plugin, ensure the following requirements are met:
 
-- [helm](https://helm.sh/docs/helm/helm_install/) with a version equal to or greater than 3.7.0.
+- [helm](https://helm.sh/docs/intro/install/) with a version equal to or greater than 3.7.0.
 - [jq](https://jqlang.github.io/jq/download/) with a version equal to or greater than 1.6.
 - [yq](https://github.com/mikefarah/yq) with a version equal to or greater than 4.18.1.
 
@@ -92,12 +92,12 @@ The `kubectl-tg` plugin allows you to deploy and manage the Operator and TigerGr
 > The kubectl-tg plugin is only verified on GNU/Linux systems.
 >
 > If you are using MacOS, you may encounter issues due to the differences between GNU and MacOS commands.
-> Please refer to the [troubleshooting document](../05-troubleshoot/kubectl-tg-plugin.md) for more information.
+> Please refer to the [troubleshooting document](../06-troubleshoot/kubectl-tg-plugin.md) for more information.
 >
 > If you are using Windows, please run the commands in a WSL environment.
 > Please refer to [Windows Subsystem for Linux Documentation](https://learn.microsoft.com/en-us/windows/wsl/) for more information.
 
-Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 0.0.9:
+Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 1.6.0:
 
 ```bash
 wget https://dl.tigergraph.com/k8s/latest/kubectl-tg -O kubectl-tg
@@ -254,7 +254,7 @@ These steps enhance the security of your cluster by utilizing your private SSH k
 Before creating the TigerGraph cluster with the Operator, specify the StorageClass, which defines the various storage options. You can identify the name of the StorageClass with the following command:
 
 > [!NOTE]
-> Here the dynamic persistent volume storage is provided by EKS by default, if you want to use static persistent volume or use them from scratch, please refer to [How to use static & dynamic persistent volume storage](../07-reference/static-and-dynamic-persistent-volume-storage.md).
+> Here the dynamic persistent volume storage is provided by EKS by default, if you want to use static persistent volume or use them from scratch, please refer to [How to use static & dynamic persistent volume storage](../08-reference/static-and-dynamic-persistent-volume-storage.md).
 
 ```bash
 kubectl get storageclass
@@ -310,11 +310,36 @@ You can customize the configurations for the TigerGraph system by specifying the
 
 ### Create a TigerGraph Cluster with Specific Options
 
-You can create a new TigerGraph cluster with specific options, such as size, high availability, version, license, and resource specifications. Here's an example:
+You can create a new TigerGraph cluster with specific options, such as size, high availability, version, license, and resource specifications.
 
-You must provide your license key when creating cluster. Contact TigerGraph support for help finding your license key.
+> [!IMPORTANT]
+> Choosing the right compute resources (CPU and memory) and storage size to host your TigerGraph system is crucial for achieving the right balance between cost and performance. We provide general guidelines for hardware selection based on simple hypothetical assumptions, but your actual hardware requirements will vary depending on your data size, workload, and performance needs.
+
+- Hardware Recommendations
+
+The sizing recommendations below apply to each TigerGraph node. If you have more than several hundred gigabytes of data, you should consider deploying a cluster of multiple nodes, to distribute your data.
+
+| Deployment env | CPU  | Memory | Storage size |
+|----------|----------|----------|----------|
+| Personal Use | 4 cores | 8GB | ≥ 50GB |
+| Development, UAT, or SIT System | 16 cores | 32GB | ≥ 300GB |
+| Production System | 32 cores | 64GB | ≥ 500GB |
+
+- Configuring HA settings
+
+TigerGraph's HA (High Availability) service provides load balancing when all components are operational, and automatic failover in the event of a service disruption. For detailed information, please refer to the [official documents](https://docs.tigergraph.com/tigergraph-server/current/cluster-and-ha-management/ha-cluster).
+
+The minimum value for the replication factor (HA) is 1, meaning high availability is not configured for the cluster. The partitioning factor is not explicitly set by the user; instead, TigerGraph determines it using the following formula:
+
+`partitioning factor = number of pods / replication factor`
+
+If the result is not an integer, some machines will remain unused. For example, in a 7-node cluster with a replication factor of 2, the system will configure 2-way HA with a partitioning factor of 3, leaving one machine unused.
+
+In general, we recommend setting the replication factor (HA) to 2 and using a cluster size that is a power of 2 (e.g., 4, 8, 16)
 
 - Export license key as an environment variable
+
+  You must provide your license key when creating cluster. Contact TigerGraph support for help finding your license key.
 
   ```bash
   export LICENSE=<LICENSE_KEY>
@@ -323,14 +348,33 @@ You must provide your license key when creating cluster. Contact TigerGraph supp
 - Create TigerGraph cluster with kubectl-tg plugin
 
   ```bash
-  kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 3 --ha 2 --version 3.9.3 --license ${LICENSE} \
+  kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 4 --ha 2 --version 4.2.1 --license ${LICENSE} \
   --storage-class gp2 --storage-size 100G --cpu 6000m --memory 16Gi --namespace ${YOUR_NAMESPACE}
   ```
+> [!NOTE]
+> **Protect your license by using Secret**
+>
+> When you use option `--license` to set license, the license will be stored in the TigerGraph CR as plain text.
+> To protect your license, you can create a K8s Secret to store the license and use the `--license-secret` option to set the license.
+> For example:
+> ```bash
+> kubectl create secret generic ${YOUR_CLUSTER_NAME}-license --from-literal=license=${LICENSE} --namespace ${YOUR_NAMESPACE}
+> ```
+> Then, when creating the TigerGraph cluster, use the `--license-secret` option to set the license:
+> ```bash
+> kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 4 --ha 2 --version 4.2.1 \
+> --license-secret ${YOUR_CLUSTER_NAME}-license --storage-class standard --storage-size 10G --cpu 2000m --memory 6Gi --namespace ${YOUR_NAMESPACE}
+> ```
+
+> [!IMPORTANT]
+> You can use only one of the `--license` and `--license-secret` options to set the license when creating the TigerGraph cluster.
+> If you set both options, the creation of CR will be rejected.
 
 - Create TigerGraph cluster with CR(Custom Resource) YAML manifest
   
 > [!NOTE]
-> Please replace the TigerGraph docker image version (e.g., 3.9.3) with your desired version.
+> Please replace the TigerGraph docker image version (e.g., 4.2.1) with your desired version.
+> If you want to use license secret instead of license, please replace the `license` field with `licenseSecretName` in the following CR YAML manifest
 
   ```bash
   cat <<EOF | kubectl apply -f -
@@ -340,7 +384,7 @@ You must provide your license key when creating cluster. Contact TigerGraph supp
     name: ${YOUR_CLUSTER_NAME}
     namespace: ${YOUR_NAMESPACE}
   spec:
-    image: docker.io/tigergraph/tigergraph-k8s:3.9.3
+    image: docker.io/tigergraph/tigergraph-k8s:4.2.1
     imagePullPolicy: IfNotPresent
     ha: 2
     license: ${LICENSE}
@@ -567,7 +611,7 @@ When using the headless service to access the TigerGraph service, you must log i
 #### Access TigerGraph Services from outside the Kubernetes cluster
 
 > [!IMPORTANT]
-> Please ensure that the external service is configured before proceeding with the following steps. You can configure the external service using the `spec.listener` field when creating or updating the TigerGraph cluster. Please refer to [External access service](../07-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md#external-access-service) for more details.
+> Please ensure that the external service is configured before proceeding with the following steps. You can configure the external service using the `spec.listener` field when creating or updating the TigerGraph cluster. Please refer to [External access service](../08-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md#external-access-service) for more details.
 
 Query the external service address:
 
@@ -614,10 +658,10 @@ Upgrading a TigerGraph cluster is supported from a lower version to a higher ver
 > [!WARNING]
 > Operator 0.0.9 has disabled TG downgrades from a higher version (e.g., 3.9.3) to any lower version (e.g., 3.9.2). Therefore, the upgrade job will fail if you attempt to downgrade.
 
-You can upgrade a TigerGraph cluster from a lower version to a higher version. Assuming the current version is 3.9.2 and you want to upgrade to 3.9.3, use the following command:
+You can upgrade a TigerGraph cluster from a lower version to a higher version. Assuming the current version is 4.1.3 and you want to upgrade to 4.2.1, use the following command:
 
 ```bash
-kubectl tg update --cluster-name ${YOUR_CLUSTER_NAME} --version 3.9.3  --namespace ${YOUR_NAMESPACE}
+kubectl tg update --cluster-name ${YOUR_CLUSTER_NAME} --version 4.2.1  --namespace ${YOUR_NAMESPACE}
 ```
 
 If you prefer to upgrade the cluster using a CR (Custom Resource) YAML manifest, simply update the `spec.image` field, and then apply it.
@@ -724,4 +768,4 @@ kubectl delete -f https://dl.tigergraph.com/k8s/${OPERATOR_VERSION}/tg-operator-
 
 If you are interested in the details of deploying a TigerGraph cluster using the CR (Custom Resource) YAML manifest, refer to the following document:
 
-- [Configuring TigerGraph Clusters on K8s using TigerGraph CR](../07-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md)
+- [Configuring TigerGraph Clusters on K8s using TigerGraph CR](../08-reference/configure-tigergraph-cluster-cr-with-yaml-manifests.md)

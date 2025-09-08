@@ -88,7 +88,7 @@ Name the above YAML file as `tg-custom-container.yaml`. To create a new cluster 
 
 ```bash
 kubectl tg  create --cluster-name test-cluster --namespace ${NAMESPACE} \
-  --size 3 --ha 2 -k ssh-key-secret --version ${TG_CLUSTER_VERSION} \
+  --size 4 --ha 2 -k ssh-key-secret --version ${TG_CLUSTER_VERSION} \
   --storage-class standard --storage-size 10G -l ${LICENSE} \
   --custom-containers tg-custom-container.yaml --custom-volumes tg-custom-volume.yaml
 ```

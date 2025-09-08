@@ -80,7 +80,7 @@ metadata:
     tigergraph.com/debug-mode: "false"
 spec:
   ha: 2
-  image: docker.io/tigergraph/tigergraph-k8s:3.10.0
+  image: docker.io/tigergraph/tigergraph-k8s:4.2.1
   imagePullPolicy: IfNotPresent
   imagePullSecrets:
     - name: tigergraph-image-pull-secret
@@ -253,5 +253,5 @@ Defaulted container "tigergraph" out of: tigergraph, init-tigergraph (init)
 
 ## Debugging commands and resources
 
-- [TigerGraph Cluster management Troubleshooting](../05-troubleshoot/cluster-management.md)
+- [TigerGraph Cluster management Troubleshooting](../06-troubleshoot/cluster-management.md)
 - [Comprehensive Kubectl Command Reference (external resource)](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands)

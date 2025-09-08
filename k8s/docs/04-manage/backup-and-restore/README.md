@@ -28,10 +28,12 @@ Ultimately, both approaches achieve the same outcome, but the `kubectl tg` plugi
 
 ### Back up data
 
-You can create backups of your TigerGraph clusters and store the backup files to Local storage or S3 bucket. Refer to:
+You can create backups of your TigerGraph clusters and store the backup files to Local storage, S3/GCS bucket or ABS container. Refer to:
 
 * [Backup to Local Storage](./backup-restore-by-kubectl-tg.md#backup-to-local-storage)
-* [Backup to S3 Bucket](./backup-restore-by-kubectl-tg.md#backup-to-an-s3-bucket)
+* [Backup to S3 Bucket](./backup-restore-by-kubectl-tg.md#backup-to-a-s3-bucket)
+* [Backup to GCS Bucket](./backup-restore-by-kubectl-tg.md#backup-to-a-gcs-bucket)
+* [Backup to ABS Container](./backup-restore-by-kubectl-tg.md#backup-to-an-abs-container)
 
 You can create a backup schedule to backup cluster periodically. Refer to:
 
@@ -48,11 +50,11 @@ About managing backup files and backup CR, refer to:
 
 ### Restore data
 
-If you have created backups of your cluster to Local storage or S3 Bucket, you can restore the cluster using a specific backup. Refer to:
+If you have created backups of your cluster to Local storage, S3/GCS Bucket or ABS container, you can restore the cluster using a specific backup. Refer to:
 
-* [Restoring within the Same Cluster](./backup-restore-by-kubectl-tg.md#restoring-within-the-same-cluster)
+* [Restoring within the Same Cluster](./backup-restore-by-kubectl-tg.md#restore-within-the-same-cluster)
 
-If you have created backups of your cluster to S3 Bucket, you can restore in another cluster, which we call cross-cluster restore. Refer to:
+If you have created backups of your cluster to S3/GCS Bucket or ABS container, you can restore in another cluster, which we call cross-cluster restore. Refer to:
 
 * [Cross-Cluster Restore from Backup](./backup-restore-by-kubectl-tg.md#cross-cluster-restore-from-backup)
 

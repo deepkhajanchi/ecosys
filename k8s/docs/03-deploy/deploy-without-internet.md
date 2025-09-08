@@ -1,247 +1,284 @@
-# How to install Operator and deploy TG on K8s without internet access
+# How to Install the Operator and Deploy TigerGraph on Kubernetes Without Internet Access
 
-- [How to install Operator and deploy TG on K8s without internet access](#how-to-install-operator-and-deploy-tg-on-k8s-without-internet-access)
+- [How to Install the Operator and Deploy TigerGraph on Kubernetes Without Internet Access](#how-to-install-the-operator-and-deploy-tigergraph-on-kubernetes-without-internet-access)
   - [Prerequisites](#prerequisites)
   - [Procedure](#procedure)
     - [Transferring Docker Images and Helm Chart Package](#transferring-docker-images-and-helm-chart-package)
       - [TigerGraph Operator](#tigergraph-operator)
       - [Cert-manager](#cert-manager)
-    - [Install Operator with kubect-tg](#install-operator-with-kubect-tg)
-    - [Install Operator using the helm command to install it locally](#install-operator-using-the-helm-command-to-install-it-locally)
-    - [Deploy TG cluster](#deploy-tg-cluster)
+    - [Install Operator with kubectl-tg](#install-operator-with-kubectl-tg)
+    - [Install Operator Using the Helm Command Locally](#install-operator-using-the-helm-command-locally)
+    - [Deploy TigerGraph Cluster](#deploy-tigergraph-cluster)
+  - [See Also](#see-also)
 
 ## Prerequisites
 
 - Docker
-
 - Private Docker registry
-
-- Private helm repo
+- Private Helm repository(Optional)
 
 ## Procedure
 
 ### Transferring Docker Images and Helm Chart Package
 
-Please ensure that your environment has internet access before proceeding with the download of these docker images and helm chart packages.
+Ensure your environment has internet access before downloading the required Docker images and Helm chart packages.
 
-For illustrative purposes, we will utilize TG cluster version 3.9.2 and TG K8s Operator version 0.0.7. Kindly make the necessary adjustments based on your specific version.
+For illustration, this guide uses TigerGraph cluster version `4.2.1` and TG K8s Operator version `1.6.0`. Adjust the versions as needed for your deployment.
 
 #### TigerGraph Operator
 
-- Docker images
+**Required Docker Images:**
 
-1. tigergraph/tigergraph-k8s:3.9.2
+1. `tigergraph/tigergraph-k8s:4.2.1`
+2. `tigergraph/tigergraph-k8s-operator:1.6.0`
+3. `tigergraph/tigergraph-k8s-init:1.6.0`
 
-2. tigergraph/tigergraph-k8s-operator:0.0.7
+**Steps:**
 
-3. tigergraph/tigergraph-k8s-init:0.0.7
+1. **Pull the images:**
 
-```bash
-docker pull tigergraph/tigergraph-k8s:3.9.2
-docker pull tigergraph/tigergraph-k8s-operator:0.0.7
-docker pull tigergraph/tigergraph-k8s-init:0.0.7
+    ```bash
+    docker pull tigergraph/tigergraph-k8s:4.2.1
+    docker pull tigergraph/tigergraph-k8s-operator:1.6.0
+    docker pull tigergraph/tigergraph-k8s-init:1.6.0
+    ```
 
-docker save tigergraph/tigergraph-k8s:3.9.2 tigergraph/tigergraph-k8s-operator:0.0.7 tigergraph/tigergraph-k8s-init:0.0.7  > tigergraph-operator-images.tar
+2. **Export the images as a tar package:**
 
-# copy the docker images tar files to your target machine before loading
-docker load < tigergraph-operator-images.tar
-# replace it to your private DOCKER_REPO
-export DOCKER_REPO=docker.io/internal
-docker tag tigergraph/tigergraph-k8s:3.9.2 ${DOCKER_REPO}/tigergraph-k8s:3.9.2
-docker tag tigergraph/tigergraph-k8s-operator:0.0.7 ${DOCKER_REPO}/tigergraph-k8s-operator:0.0.7
-docker tag tigergraph/tigergraph-k8s-init:0.0.7 ${DOCKER_REPO}/tigergraph/tigergraph-k8s-init:0.0.7
+    ```bash
+    docker save tigergraph/tigergraph-k8s:4.2.1 tigergraph/tigergraph-k8s-operator:1.6.0 tigergraph/tigergraph-k8s-init:1.6.0 > tigergraph-operator-images.tar
+    ```
 
-# push them to your private docker repo
-docker push ${DOCKER_REPO}/tigergraph-k8s:3.9.2
-docker push ${DOCKER_REPO}/tigergraph-k8s-operator:0.0.7
-docker push ${DOCKER_REPO}/tigergraph-k8s-init:0.0.7
-```
+3. **Copy the tar file to your target machine and load the images:**
 
-- Helm chart package (private helm repo required)
+    ```bash
+    docker load < tigergraph-operator-images.tar
+    ```
 
-If the goal is to install the operator using kubectl-tg, having a private Helm repository is crucial. If such a repository is unavailable and you aim to install an operator without internet connectivity, refer to the section that outlines the procedure for installing the Helm chart locally.
+4. **Tag the images for your private Docker registry:**
 
-```bash
-# Dowload the helm chart package from TG public repo
-curl https://dl.tigergraph.com/charts/tg-operator-0.0.7.tgz -o tg-operator-0.0.7.tgz
+    ```bash
+    export DOCKER_REPO=${YOUR_PRIVATE_DOCKER_REPO}
+    docker tag tigergraph/tigergraph-k8s:4.2.1 ${DOCKER_REPO}/tigergraph-k8s:4.2.1
+    docker tag tigergraph/tigergraph-k8s-operator:1.6.0 ${DOCKER_REPO}/tigergraph-k8s-operator:1.6.0
+    docker tag tigergraph/tigergraph-k8s-init:1.6.0 ${DOCKER_REPO}/tigergraph/tigergraph-k8s-init:1.6.0
+    ```
 
-# 
-#    mkdir -p /tmp/charts
-#    chmod 0777 /tmp/charts
-#    docker run -d \
-#      -p 8383:8080 \
-#      -e DEBUG=1 \
-#      -e STORAGE=local \
-#      -e STORAGE_LOCAL_ROOTDIR=/charts \
-#      -v /tmp/charts:/charts \
-#      --name ${helm_repo_name} ghcr.io/helm/chartmuseum:v0.13.1
-# replace the HELM_REPO to your own one, the following steps will take chartmuseum as an example.
-export HELM_REPO=http://127.0.0.1:8383
-# upload the helm chart package to your private helm repo
-curl --request DELETE ${HELM_REPO}/api/charts/tg-operator/${VERSION}
-curl --data-binary "@charts/tg-operator-${VERSION}.tgz" ${HELM_REPO}/api/charts
-```
+5. **Push the images to your private Docker registry:**
 
-- Install Operator and deploy TG cluster with private docker repo and helm repo
+    ```bash
+    docker push ${DOCKER_REPO}/tigergraph-k8s:4.2.1
+    docker push ${DOCKER_REPO}/tigergraph-k8s-operator:1.6.0
+    docker push ${DOCKER_REPO}/tigergraph-k8s-init:1.6.0
+    ```
+
+**Helm Chart Package (Private Helm Repo Required):**
+
+If you plan to install the operator using `kubectl-tg`, a private Helm repository is required. If you do not have a private Helm repo and need to install the operator offline, refer to the section on local Helm chart installation.
+
+1. **Download the Helm chart:**
+
+    ```bash
+    curl https://dl.tigergraph.com/charts/tg-operator-1.6.0.tgz -o tg-operator-1.6.0.tgz
+    ```
+
+2. **Upload the Helm chart to your private Helm repository:**
+
+    ```bash
+    export HELM_REPO=${YOUR_PRIVATE_HELM_REPO}
+    export VERSION=1.6.0
+    curl --request DELETE ${HELM_REPO}/api/charts/tg-operator/${VERSION}
+    curl --data-binary "@charts/tg-operator-${VERSION}.tgz" ${HELM_REPO}/api/charts
+    ```
 
 #### Cert-manager
 
-The following examples suppose you are going to use cert-manager 1.8.0 version
+This example uses [cert-manager version 1.12.17](https://github.com/cert-manager/cert-manager/releases/download/v1.12.17/cert-manager.yaml).
 
-- Transferring the cert-manager Docker images to your private Docker registry
+**Transferring Cert-manager Docker Images:**
+
+1. **Pull the images:**
+
+    ```bash
+    docker pull quay.io/jetstack/cert-manager-cainjector:v1.12.17
+    docker pull quay.io/jetstack/cert-manager-controller:v1.12.17
+    docker pull quay.io/jetstack/cert-manager-webhook:v1.12.17
+    ```
+
+2. **Export the images as a tar package:**
+
+    ```bash
+    docker save quay.io/jetstack/cert-manager-cainjector:v1.12.17 quay.io/jetstack/cert-manager-controller:v1.12.17 quay.io/jetstack/cert-manager-webhook:v1.12.17 > cert-manager-images.tar
+    ```
+
+3. **Copy the tar file to your target machine and load the images:**
+
+    ```bash
+    docker load < cert-manager-images.tar
+    ```
+
+4. **Tag the images for your private Docker registry:**
+
+    ```bash
+    export DOCKER_REPO=${YOUR_PRIVATE_DOCKER_REPO}
+    docker tag quay.io/jetstack/cert-manager-cainjector:v1.12.17 ${DOCKER_REPO}/cert-manager-cainjector:v1.12.17
+    docker tag quay.io/jetstack/cert-manager-controller:v1.12.17 ${DOCKER_REPO}/cert-manager-controller:v1.12.17
+    docker tag quay.io/jetstack/cert-manager-webhook:v1.12.17 ${DOCKER_REPO}/cert-manager-webhook:v1.12.17
+    ```
+
+5. **Push the images to your private Docker registry:**
+
+    ```bash
+    docker push ${DOCKER_REPO}/cert-manager-cainjector:v1.12.17
+    docker push ${DOCKER_REPO}/cert-manager-controller:v1.12.17
+    docker push ${DOCKER_REPO}/cert-manager-webhook:v1.12.17
+    ```
+
+**Modify the Cert-manager Manifest:**
+
+1. **Download the cert-manager YAML resource:**
+
+    ```bash
+    curl -L "https://github.com/cert-manager/cert-manager/releases/download/v1.12.17/cert-manager.yaml" -o "cert-manager.yaml"
+    ```
+
+2. **Replace the public Docker image URLs with your private registry URLs:**
+
+    - **On macOS:**
+
+      ```bash
+      sed -i '' "s|quay.io/jetstack/cert-manager-cainjector:v1.12.17|${DOCKER_REPO}/cert-manager-cainjector:v1.12.17|g" cert-manager.yaml
+      sed -i '' "s|quay.io/jetstack/cert-manager-controller:v1.12.17|${DOCKER_REPO}/cert-manager-controller:v1.12.17|g" cert-manager.yaml
+      sed -i '' "s|quay.io/jetstack/cert-manager-webhook:v1.12.17|${DOCKER_REPO}/cert-manager-webhook:v1.12.17|g" cert-manager.yaml
+      ```
+
+    - **On Linux:**
+
+      ```bash
+      sed -i "s|quay.io/jetstack/cert-manager-cainjector:v1.12.17|${DOCKER_REPO}/cert-manager-cainjector:v1.12.17|g" cert-manager.yaml
+      sed -i "s|quay.io/jetstack/cert-manager-controller:v1.12.17|${DOCKER_REPO}/cert-manager-controller:v1.12.17|g" cert-manager.yaml
+      sed -i "s|quay.io/jetstack/cert-manager-webhook:v1.12.17|${DOCKER_REPO}/cert-manager-webhook:v1.12.17|g" cert-manager.yaml
+      ```
+
+3. **Install cert-manager using your private Docker images:**
+
+    ```bash
+    kubectl apply -f cert-manager.yaml
+    ```
+
+---
+
+### Install Operator with kubectl-tg
+
+If your Docker registry requires authentication, specify a custom secret name using the `--image-pull-secret` option (default: `tigergraph-image-pull-secret`).  
+Create the image pull secret in the target namespace before deploying your TG cluster.
 
 ```bash
-# curl https://github.com/cert-manager/cert-manager/releases/download/v1.12.13/cert-manager.yaml
-# quay.io/jetstack/cert-manager-cainjector:v1.12.13
-# quay.io/jetstack/cert-manager-controller:v1.12.13
-# quay.io/jetstack/cert-manager-webhook:v1.12.13
-docker pull quay.io/jetstack/cert-manager-cainjector:v1.12.13
-docker pull quay.io/jetstack/cert-manager-controller:v1.12.13
-docker pull quay.io/jetstack/cert-manager-webhook:v1.12.13
-
-docker save quay.io/jetstack/cert-manager-cainjector:v1.12.13 quay.io/jetstack/cert-manager-controller:v1.12.13 quay.io/jetstack/cert-manager-webhook:v1.12.13  > cert-manager-images.tar
-
-# copy the docker images tar files to your target machine before loading
-docker load < cert-manager-images.tar
-
-# replace it to your private DOCKER REPO
-export DOCKER_REPO=docker.io/internal
-docker tag quay.io/jetstack/cert-manager-cainjector:v1.12.13 ${DOCKER_REPO}/cert-manager-cainjector:v1.12.13
-docker tag quay.io/jetstack/cert-manager-controller:v1.12.13 ${DOCKER_REPO}/cert-manager-controller:v1.12.13
-docker tag quay.io/jetstack/cert-manager-webhook:v1.12.13 ${DOCKER_REPO}/cert-manager-webhook:v1.12.13
-
-# push them to your private docker repo
-docker push ${DOCKER_REPO}/cert-manager-cainjector:v1.12.13
-docker push ${DOCKER_REPO}/cert-manager-controller:v1.12.13
-docker push ${DOCKER_REPO}/cert-manager-webhook:v1.12.13
-```
-
-- Modify the manifests of cert-manager according to your docker registry
-
-```bash
-curl -L "https://github.com/cert-manager/cert-manager/releases/download/v1.12.13/cert-manager.yaml" -o "cert-manager.yaml"
-
-# edit cert-manager.yaml, change the following lines which including cert-manager images
-quay.io/jetstack/cert-manager-cainjector:v1.12.13 -> ${DOCKER_REPO}/cert-manager-cainjector:v1.12.13
-quay.io/jetstack/cert-manager-cainjector:v1.12.13 -> ${DOCKER_REPO}/cert-manager-controller:v1.12.13
-quay.io/jetstack/cert-manager-cainjector:v1.12.13 -> ${DOCKER_REPO}/cert-manager-webhook:v1.12.13
-
-# Install the cert-manager with your private docker 
-kubectl apply -f cert-manager.yaml
-```
-
-### Install Operator with kubect-tg
-
-In scenarios where your Docker registry necessitates authentication, you can specify a custom secret name using the `--image-pull-secret` option. The default secret name is `tigergraph-image-pull-secret`.
-
-Furthermore, it's imperative to create the image pull secret within the designated namespace before initiating the deployment of your TG cluster.
-
-```bash
-# please make sure the HELM_REPO and DOCKER_REPO is correct
-export HELM_REPO=http://127.0.0.1:8383
-export DOCKER_REPO=docker.io/internal
+export HELM_REPO=${YOUR_PRIVATE_HELM_REPO}
+export DOCKER_REPO=${YOUR_PRIVATE_DOCKER_REPO}
 kubectl tg init --namespace tigergraph --helm-repo ${HELM_REPO} --image-pull-secret yoursecret --docker-registry ${DOCKER_REPO}
 ```
 
-### Install Operator using the helm command to install it locally
+---
 
-Please follow these steps to install a Helm chart:
+### Install Operator Using the Helm Command Locally
 
-1. Download the Helm chart you want to install.
+**Steps:**
 
-2. Extract the chart to a directory on your local machine.
+1. Download the Helm chart:
 
-3. Open a terminal window and navigate to the directory where you extracted the chart.
+    ```bash
+    curl https://dl.tigergraph.com/charts/tg-operator-1.6.0.tgz -o tg-operator-1.6.0.tgz
+    ```
 
-4. Modify the default configuration of Operator by editing `values.yaml`.
+2. Extract the chart:
 
-5. Run the following command to install the chart:
+    ```bash
+    tar xvf tg-operator-1.6.0.tgz
+    ```
 
-Customize the operator configuration via values.yaml, we should change the image filed to your internal docker repo.
+3. Navigate to the chart directory:
 
-```bash
-# Default values for tg-operator.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+    ```bash
+    cd tg-operator && tree
+    ```
 
-# Default values for deployment replicas of operator
-replicas: 3
-# image is the docker image of operator
-image: tigergraph-k8s-operator
-# jobImage is the docker image of cluster operation(int, upgrade, scale and so on) job
-jobImage: tigergraph-k8s-init
-pullPolicy: IfNotPresent
-# imagePullSecret is the docker image pull secret of operator
-imagePullSecret: tigergraph-image-pull-secret
-# watchNameSpaces are the namespaces which operator watch, multiple namespaces separated by comma, empty indicates watch all namespaces
-watchNameSpaces: ""
-# clusterScope is whether the operator has ClusterRole
-clusterScope: true
-# maxConcurrentReconciles of controllers, defaults to 2
-maxConcurrentReconcilesOfTG: 2
-maxConcurrentReconcilesOfBackup: 2
-maxConcurrentReconcilesOfBackupSchedule: 2
-maxConcurrentReconcilesOfRestore: 2
-# resources are resources requests configuration of operator
-resources:
-  requests:
-    cpu: 1000m
-    memory: 1024Mi
-  limits:
-    cpu: 2000m
-    memory: 4096Mi
-# nodeSelector is the nodeSelector of operator pods
-nodeSelector: null
-```
+    Example output:
 
-Install Operator using helm
+    ```bash
+    .
+    ├── Chart.yaml
+    ├── crds
+    │   └── tg-operator-crd.yaml
+    ├── templates
+    │   ├── NOTES.txt
+    │   ├── _helpers.tpl
+    │   ├── crd-upgrade
+    │   │   ├── crd-job.yaml
+    │   │   ├── crd-rbac.yaml
+    │   │   └── crd-serviceaccount.yaml
+    │   └── tg-operator.yaml
+    └── values.yaml
+    ```
 
-```bash
-curl https://dl.tigergraph.com/charts/tg-operator-0.0.7.tgz -o tg-operator-0.0.7.tgz
-tar xvf tg-operator-0.0.7.tgz
+4. Edit `values.yaml` to customize the operator configuration (e.g., Docker images, replicas, namespaces, resource limits).
 
-$ cd tg-operator
-$ tree
-.
-├── Chart.yaml
-├── crds
-│   └── tg-operator-crd.yaml
-├── templates
-│   ├── NOTES.txt
-│   ├── _helpers.tpl
-│   └── tg-operator.yaml
-└── values.yaml
+    Example `values.yaml` snippet:
 
-# before you install the Operator, you may need to modify the configuration in values.yaml
-# such as docker images, replicas, watchnamesapce, resources limits and so on
-$ helm install tg-operator ./tg-operator -n tigergraph
-NAME: tg-operator
-LAST DEPLOYED: Tue Mar 14 06:58:41 2023
-NAMESPACE: tigergraph
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-NOTES:
+    ```yaml
+    # Default values for tg-operator.
+    replicas: 3
+    image: tigergraph-k8s-operator
+    jobImage: tigergraph-k8s-init
+    pullPolicy: IfNotPresent
+    imagePullSecret: tigergraph-image-pull-secret
+    watchNameSpaces: ""
+    clusterScope: true
+    maxConcurrentReconcilesOfTG: 2
+    maxConcurrentReconcilesOfBackup: 2
+    maxConcurrentReconcilesOfBackupSchedule: 2
+    maxConcurrentReconcilesOfRestore: 2
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1024Mi
+      limits:
+        cpu: 2000m
+        memory: 4096Mi
+    nodeSelector: null
+    ```
 
-$ helm list -n tigergraph
-NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-tg-operator     tigergraph      1               2023-03-14 06:58:41.849883727 +0000 UTC deployed        tg-operator-0.0.7
+5. Install the TigerGraph Operator:
 
-# make sure the deployment of Operator is running now
-kubectl get pods -n tigergraph
-NAME                                                      READY   STATUS    RESTARTS   AGE
-tigergraph-operator-controller-manager-7cfc4476c7-692r4   2/2     Running   0          5m8s
-tigergraph-operator-controller-manager-7cfc4476c7-76msk   2/2     Running   0          5m8s
-tigergraph-operator-controller-manager-7cfc4476c7-k8425   2/2     Running   0          5m8s   
-```
+    ```bash
+    helm install tg-operator ./tg-operator -n tigergraph
+    ```
 
-### Deploy TG cluster
+6. Verify the installation:
 
-If your Docker registry necessitates authentication, you need to create an image pull secret. Please make the necessary adjustments to the namespace based on your environment.
+    ```bash
+    helm list -n tigergraph
+    kubectl get pods -n tigergraph
+    ```
 
-Here's the secret definition you can use as a reference, please make the necessary adjustments to the namespace based on your environment.:
+    Example output:
 
-```bash
+    ```bash
+    NAME                                                      READY   STATUS    RESTARTS   AGE
+    tigergraph-operator-controller-manager-7cfc4476c7-692r4   2/2     Running   0          5m8s
+    tigergraph-operator-controller-manager-7cfc4476c7-76msk   2/2     Running   0          5m8s
+    tigergraph-operator-controller-manager-7cfc4476c7-k8425   2/2     Running   0          5m8s
+    ```
+
+---
+
+### Deploy TigerGraph Cluster
+
+If your Docker registry requires authentication, create an image pull secret and adjust the namespace as needed.
+
+**Example secret definition:**
+
+```yaml
 apiVersion: v1
 data:
   .dockerconfigjson: ******************************************
@@ -252,25 +289,23 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 ```
 
-Create a private ssh key secret(Required operator 0.0.7 and later)
+**Create a private SSH key secret (Operator 0.0.7+ required):**
 
 ```bash
-echo -e 'y\\n' | ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/tigergraph_rsa -q -N ''
-
+echo -e 'y\n' | ssh-keygen -b 4096 -t rsa -f $HOME/.ssh/tigergraph_rsa -q -N ''
 kubectl create secret generic ssh-key-secret --from-file=private-ssh-key=$HOME/.ssh/tigergraph_rsa --from-file=public-ssh-key=$HOME/.ssh/tigergraph_rsa.pub --namespace tigergraph
 ```
 
-Deploy TG cluster with specific docker registry
+**Deploy the TigerGraph cluster with a specific Docker registry:**
 
 ```bash
-  # please make sure the DOCKER_REGISTRY is correct, the following is just an expamle.
-  export DOCKER_REGISTRY=docker.io/internal
-  kubectl tg create --cluster-name test001 --namespace tigergraph --private-key-secret ssh-key-secret --docker-registry  ${DOCKER_REGISTRY} \
-    -s 6 --ha 2 --version TG_CLUSTER_VERSION \
-    --storage-class YOUR_STORAGE_CLASS_NAME --storage-size 100G
+export DOCKER_REGISTRY=${YOUR_DOCKER_REGISTRY}
+kubectl tg create --cluster-name test001 --namespace tigergraph --private-key-secret ssh-key-secret --docker-registry ${DOCKER_REGISTRY} \
+  -s 6 --ha 2 --version TG_CLUSTER_VERSION \
+  --storage-class YOUR_STORAGE_CLASS_NAME --storage-size 100G
 ```
 
-We can also modify the TigerGraph manifest to deploy the TG cluster directly
+**Alternatively, modify the TigerGraph manifest directly:**
 
 ```yaml
 apiVersion: graphdb.tigergraph.com/v1alpha1
@@ -278,28 +313,41 @@ kind: TigerGraph
 metadata:
   name: test-cluster
 spec:
-  image: ${DOCKER_REGISTRY}/tigergraph-k8s:3.9.2
+  image: ${YOUR_DOCKER_REGISTRY}/tigergraph-k8s:4.2.1
   imagePullPolicy: IfNotPresent
   imagePullSecrets:
-  - name: tigergraph-image-pull-secret
+    - name: tigergraph-image-pull-secret
   ha: 2
   license: xxxxxxxxxxxx
   listener:
     type: LoadBalancer
   privateKeyName: ssh-key-secret
-  replicas: 3
+  replicas: 4
   resources:
     requests:
-      cpu: "2"
-      memory: 8Gi
+      cpu: "6"
+      memory: 12Gi
   storage:
     type: persistent-claim
     volumeClaimTemplate:
       accessModes:
-      - ReadWriteOnce
+        - ReadWriteOnce
       resources:
         requests:
           storage: 100G
       storageClassName: standard
       volumeMode: Filesystem
 ```
+
+---
+
+## See Also
+
+For more details on managing the operator in other environments, refer to:
+
+- [How to upgrade TigerGraph Kubernetes Operator](../04-manage/operator-upgrade.md)
+- [Deploy TigerGraph on AWS EKS](../03-deploy/tigergraph-on-eks.md)
+- [Deploy TigerGraph on Google Cloud GKE](../03-deploy/tigergraph-on-gke.md)
+- [Deploy TigerGraph on Red Hat OpenShift](../03-deploy/tigergraph-on-openshift.md)
+- [Deploy TigerGraph on Azure Kubernetes Service (AKS)](../03-deploy/tigergraph-on-aks.md)
+- [Deploy TigerGraph Operator on K8s using Helm](../03-deploy/deploy-operator-with-helm.md)

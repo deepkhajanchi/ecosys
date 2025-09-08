@@ -82,7 +82,7 @@ spec:
       echo "This is a pre delete action" >> /tmp/pre-delete-action.log
 ```
 
-If you configure the above `PreDeleteAction`, the command will be executed in the first TigerGraph pods(whose suffix is `-0`) before deleting the TigerGraph cluster. And the status of the cluster will become `DeletePre` once the delete-pre-job starts. After the delete-pre-job is finished, the status of the cluster will become `DeleteRoll`, operator will clean all resources of the cluster and remove the finalizer of TigerGraph CR. Then the TigerGraph CR will be cleaned by K8s. (See more details about finalizers in [Finalizers used by TG](../07-reference/finalizers-used-by-tg.md))
+If you configure the above `PreDeleteAction`, the command will be executed in the first TigerGraph pods(whose suffix is `-0`) before deleting the TigerGraph cluster. And the status of the cluster will become `DeletePre` once the delete-pre-job starts. After the delete-pre-job is finished, the status of the cluster will become `DeleteRoll`, operator will clean all resources of the cluster and remove the finalizer of TigerGraph CR. Then the TigerGraph CR will be cleaned by K8s. (See more details about finalizers in [Finalizers used by TG](../08-reference/finalizers-used-by-tg.md))
 
 > [!IMPORTANT]
 > In following scenarios, the PreDeleteAction will not be executed:
