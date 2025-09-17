@@ -14,6 +14,7 @@ This GraphRAG tutorial contains:
   - [Setup Docker Environment](#setup-docker-environment)
   - [Download Docker Images](#download-docker-images)
   - [Deploy GraphRAG Services](#deploy-graphrag-with-docker-compose)
+  - [Deploy GraphRAG with Kubernetes](#deploy-with-kubernetes)
 - [Run Demo](#run-demo)
   - [Use Preloaded GraphRAG](#use-preloaded-graphrag)
   - [Start From Scratch](#build-graphrag-from-scratch)
@@ -131,6 +132,25 @@ After using the database, and you want to shutdown it, use the following shell c
 ```
 gadmin stop all
 ```
+
+[Go back to top](#top)
+
+### Deploy with Kubernetes
+* Step 1: Get kubernetes deployment file
+  - Download the [graphrag-k8s.yml](https://raw.githubusercontent.com/tigergraph/ecosys/refs/heads/master/tutorials/graphrag/graphrag-k8s.yml) file directly
+
+* Step 2: Set up configurations
+  Next, in the same directory as the Kubernetes deployment file is in, create a `configs` directory and download the following configuration files:
+  * [configs/server_config.json](https://raw.githubusercontent.com/tigergraph/ecosys/refs/heads/master/tutorials/graphrag/configs/server_config.json)
+
+  Update the TigerGraph database information, LLM API keys and other configs accordingly.
+
+* Step 3: Start all services
+  Replace `/path/to/graphrag/configs` with the absolute path of the `configs` folder inside `graphrag-k8s.yml`, and update the TigerGraph database information and other configs accordingly.
+
+  Now, simply run `kubectl apply -f graphrag-k8s.yml` and wait for all the services to start.
+
+> Note: Nginx Ingress should be installed using `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.1/deploy/static/provider/cloud/deploy.yaml`
 
 [Go back to top](#top)
 
