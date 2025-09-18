@@ -37,11 +37,11 @@ This GraphRAG tutorial contains:
 
 To use TigerGraph Community Edition without a license key, download the corresponding docker image from https://dl.tigergraph.com/ and load to Docker:
 ```
-docker load -i ./tigergraph-4.2.0-community-docker-image.tar.gz
+docker load -i ./tigergraph-4.2.1-community-docker-image.tar.gz
 docker images
 ```
 
-You should be able to find `tigergraph/community:4.2.0` in the image list.
+You should be able to find `tigergraph/community:4.2.1` in the image list.
 
 #### GraphRAG Docker Images
 
