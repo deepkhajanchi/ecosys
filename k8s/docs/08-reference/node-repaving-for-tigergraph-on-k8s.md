@@ -32,9 +32,6 @@ TigerGraph generally maintains high availability under both conditions, provided
 
 Note that some critical TigerGraph components—such as GSE, GSQL, and Kafka—may perform a leader switch during node repaving. In rare cases, this can cause brief service disruption. Therefore, upstream applications should implement retry logic with a minimum retry interval of 5 seconds.
 
-> [!WARNING]
-> When using TigerGraph 4.2.1, you may encounter rare cases where node repaving causes downtime longer than 5 seconds. If your workload requires strict high availability, we suggest trying these features in a test environment first. We plan to address these issues in the next release.
-
 ## Prerequisites
 
 Ensure you have the following before proceeding:

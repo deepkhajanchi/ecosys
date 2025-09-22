@@ -97,7 +97,7 @@ The `kubectl-tg` plugin allows you to deploy and manage the Operator and TigerGr
 > If you are using Windows, please run the commands in a WSL environment.
 > Please refer to [Windows Subsystem for Linux Documentation](https://learn.microsoft.com/en-us/windows/wsl/) for more information.
 
-Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 1.6.0:
+Here's an example of installing the latest kubectl-tg, you can change the latest to your desired version, such as 0.0.9:
 
 ```bash
 wget https://dl.tigergraph.com/k8s/latest/kubectl-tg -O kubectl-tg
