@@ -123,10 +123,10 @@ Now, simply run `docker compose up -d` and wait for all the services to start.
 
 If you prefer to start a TigerGraph Community Edition instance without a license key, please make sure the container can be accessed from the GraphRAG containers by add `--network graphrag_default`:
 ```
-docker run -d -p 14240:14240 --name tigergraph --ulimit nofile=1000000:1000000 --init --network graphrag_default -t tigergraph/community:4.2.0
+docker run -d -p 14240:14240 --name tigergraph --ulimit nofile=1000000:1000000 --init --network graphrag_default -t tigergraph/community:4.2.1
 ```
 
-> Use **tigergraph/tigergraph:4.2.0** if Enterprise Edition is preferred.
+> Use **tigergraph/tigergraph:4.2.1** if Enterprise Edition is preferred.
 > Setting up **DNS** or `/etc/hosts` properly is an alternative solution to ensure contains can connect to each other.
 > Or modify`hostname` in `db_config` section of `configs/server_config.json` and replace `http://tigergraph` to your tigergraph container IP address, e.g., `http://172.19.0.2`. 
 
