@@ -70,6 +70,15 @@ Next, download the following configuration files and put them in a `configs` sub
 * [configs/server_config.json](https://raw.githubusercontent.com/tigergraph/ecosys/refs/heads/master/tutorials/graphrag/configs/server_config.json)
 * [configs/nginx.conf](https://raw.githubusercontent.com/tigergraph/ecosys/refs/heads/master/tutorials/graphrag/configs/nginx.conf)
 
+Here’s what the folder structure looks like:
+```
+    graphrag
+    ├── configs
+    │   ├── nginx.conf
+    │   └── server_config.json
+    └── docker-compose.yml
+```
+
 #### Step 3: Adjust configurations
 
 Edit `llm_config` section of `configs/server_config.json` and replace `<YOUR_OPENAI_API_KEY>` to your own OPENAI_API_KEY. 
