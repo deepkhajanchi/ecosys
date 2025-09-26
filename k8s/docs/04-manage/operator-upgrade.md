@@ -3,6 +3,9 @@
 This document provides step-by-step instructions for upgrading the TigerGraph Kubernetes Operator using the kubectl-tg plugin.
 
 - [How to upgrade TigerGraph Kubernetes Operator](#how-to-upgrade-tigergraph-kubernetes-operator)
+  - [Before You begin](#before-you-begin)
+    - [Release Number Definition](#release-number-definition)
+    - [Check whether high availability is enabled on the TigerGraph Operator](#check-whether-high-availability-is-enabled-on-the-tigergraph-operator)
   - [Upgrading from TigerGraph Operator 1.0.0 and later versions to version 1.7.0](#upgrading-from-tigergraph-operator-100-and-later-versions-to-version-170)
     - [Upgrading kubectl-tg plugin](#upgrading-kubectl-tg-plugin)
       - [Upgrading TigerGraph Operator](#upgrading-tigergraph-operator)
@@ -26,6 +29,47 @@ This document provides step-by-step instructions for upgrading the TigerGraph Ku
     - [Successfully upgraded the operator from versions above 1.0.0 to 1.2.0, but still can’t create a TigerGraph cluster with the new features released in 1.2.0](#successfully-upgraded-the-operator-from-versions-above-100-to-120-but-still-cant-create-a-tigergraph-cluster-with-the-new-features-released-in-120)
     - [Successfully upgraded the operator from version 0.0.9 to version 1.2.0 and earlier, but still encountered some errors when creating a TigerGraph cluster](#successfully-upgraded-the-operator-from-version-009-to-version-120-and-earlier-but-still-encountered-some-errors-when-creating-a-tigergraph-cluster)
     - [Failed to upgrade the operator from version 0.0.9 to version 1.3.0 and above](#failed-to-upgrade-the-operator-from-version-009-to-version-130-and-above)
+
+## Before You begin
+
+### Release Number Definition
+
+Similar to the TigerGraph release number, the operator's release number consists of three parts, represented as X.Y.Z:
+
+- **X (MAJOR version)**: Indicates incompatible CRD (Custom Resource Definition) changes.
+
+- **Y (MINOR version)**: Indicates the addition of functionality in a backward-compatible manner, without breaking changes.
+
+- **Z (PATCH version)**: Indicates backward-compatible bug fixes, with no changes to MAJOR and MINOR versions.
+
+Therefore, there are no breaking changes when upgrading the Operator within a MINOR or PATCH version.
+
+> [!NOTE]
+> A backward-compatible Operator upgrade may still introduce changes to the StatefulSet used to manage TigerGraph.
+> However, these changes will not take effect until you update the TigerGraph CR, at which point a rolling upgrade will be triggered.
+
+### Check whether high availability is enabled on the TigerGraph Operator
+
+In production environments, high availability should always be enabled on the TigerGraph Operator to ensure seamless upgrades.
+
+You can check the replicas of Operator by the following command:
+
+```bash
+kubectl get deployment tigergraph-operator-controller-manager -o jsonpath='{.spec.replicas}' -n ${YOUR_NAMESPACE_OF_OPERATOR}
+```
+
+Example output:
+
+```bash
+$ kubectl get deployment tigergraph-operator-controller-manager -o jsonpath='{.spec.replicas}' -n tigergraph
+1
+```
+
+If the output above is 1, scale out the Operator with the following command:
+
+```bash
+kubectl tg upgrade --namespace ${YOUR_NAMESPACE_OF_OPERATOR} --operator-size 3
+```
 
 ## Upgrading from TigerGraph Operator 1.0.0 and later versions to version 1.7.0
 
