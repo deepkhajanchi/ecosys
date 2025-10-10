@@ -19,15 +19,13 @@ def update_graphrag(conn: TigerGraphConnection):
     conn.ai.forceConsistencyUpdate("graphrag")
 
 if __name__ == "__main__":
-    with open("./configs/db_config") as cfg:
-        config = json.load(cfg)
-
+    
     # We first create a connection to the database
     conn = TigerGraphConnection(
-        host=config["hostname"],
-        username=config["username"],
-        password=config["password"],
-        restppPort=config["restppPort"],
+        host="http://localhost",
+        username="tigergraph",
+        password="tigergraph",
+        restppPort="14240",
     )
     conn.graphname = "TigerGraphRAG"
 
