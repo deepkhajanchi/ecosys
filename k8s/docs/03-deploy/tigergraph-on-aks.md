@@ -337,7 +337,7 @@ In general, we recommend setting the replication factor (HA) to 2 and using a cl
 > Then, when creating the TigerGraph cluster, use the `--license-secret` option to set the license:
 > ```bash
 > kubectl tg create --cluster-name ${YOUR_CLUSTER_NAME} --private-key-secret ${YOUR_SSH_KEY_SECRET_NAME} --size 4 --ha 2 --version 4.2.1 \
-> --license-secret ${YOUR_CLUSTER_NAME}-license --storage-class standard --storage-size 10G --cpu 2000m --memory 6Gi --namespace ${YOUR_NAMESPACE}
+> --license-secret ${YOUR_CLUSTER_NAME}-license --storage-class default --storage-size 10G --cpu 2000m --memory 6Gi --namespace ${YOUR_NAMESPACE}
 > ```
 
 > [!IMPORTANT] 
