@@ -28,4 +28,4 @@ while True; do
   sleep 5
 done
 
-python ./answer_question.sh
+python ./answer_question.py
