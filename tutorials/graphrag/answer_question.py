@@ -25,7 +25,7 @@ print(f"""Fetching answer for question: {query}""")
 
 resp = conn.ai.answerQuestion(
     query,
-    method="hnswoverlap",
+    method="...",
     method_parameters = {
         "indices": ["Document", "DocumentChunk", "Entity", "Relationship"],
         "top_k": 2,
